@@ -71,7 +71,7 @@ public class CarControlEndpoint  {
 	public void onError(Throwable t) {
 		System.err.println("An error has occurred in the websocket communication. See below for details.");
 		t.printStackTrace();
-		//clean up the session ID map as onClose may never get called TODO: check sanity of this
+		//clean up the session ID map as onClose may never get called
 		ipSessionMap.remove(sessionId);
 	}
 

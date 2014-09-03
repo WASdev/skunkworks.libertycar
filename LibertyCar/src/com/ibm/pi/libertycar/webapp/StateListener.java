@@ -44,7 +44,6 @@ public class StateListener implements ServletContextListener {
 		}
 		
 		//TODO setup automated loading of config for frequencies
-	//	CarConfig.createFrequencyMappingFile();// this is debug. Should be read file, and higher up in execution
     }
 	
 }

@@ -125,7 +125,7 @@ public class CarConfig extends HttpServlet {
 
 		//calc increments
 		steeringIncrement = (rightMax-leftMax)/100;
-		speedIncrement = (maxForward-maxReverse)/200; //200% is actually max speed but we hide that
+		speedIncrement = (maxForward-maxReverse)/200; //200% is actually max speed (but we hide that as it is normally too high)
 
 		//set values in car controller
 		//steering
@@ -245,7 +245,6 @@ public class CarConfig extends HttpServlet {
 		try {
 			myFile.createNewFile();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

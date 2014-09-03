@@ -33,6 +33,7 @@ public class CarDriver {
 	}
 
 	public void setPWMFreq(float freq) throws IOException, InterruptedException{
+		//note this is not working all the time. If this does not work use Python script from Adafruit to set frequency.
 		if(!!!testMode){
 			double freqScale = ((25000000/4096)/freq)-1.0; //figure out freq scale
 			freqScale = Math.floor(freqScale+0.5);
@@ -41,9 +42,9 @@ public class CarDriver {
 			int newMode = (oldMode & 0x7F) | 0x10;
 
 			device.write(MODE1, (byte) newMode);
-//			Thread.sleep(20);
+			Thread.sleep(20);
 			device.write(PRESCALE, (byte)(Math.floor(freqScale)));
-//			Thread.sleep(20);
+			Thread.sleep(20);
 			device.write(MODE1, (byte)oldMode);
 			Thread.sleep(60);
 			device.write(MODE1, (byte) (oldMode | 0x80));
@@ -59,10 +60,9 @@ public class CarDriver {
 			device.write(LED0_ON_H+4*channel, (byte) (on >> 8));
 			device.write(LED0_OFF_L+4*channel, (byte) (off & 0xFF));
 			device.write(LED0_OFF_H+4*channel, (byte) (off >> 8));
-//			System.out.println("Channel "+channel+ " IS set to "+on+" : "+off);
 
 		} else {
-//			System.out.println("Channel "+channel+ " set to "+on+" : "+off);
+			System.out.println("Channel "+channel+ " set to "+on+" : "+off);
 		}
 	}
 }

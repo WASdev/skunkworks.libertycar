@@ -7,6 +7,14 @@ import java.net.URL;
 import com.ibm.wasdev.arduino.Arduino;
 import com.ibm.wasdev.arduino.ArduinoService;
 
+/**
+ * Note that this file is very WIP and has been mostly disabled due to sensor issues.
+ * 
+ * TODO: version 1.1 needs this updating to use recommended sensor config.
+ * 
+ * @author Tom
+ *
+ */
 public class ArduinoPoller implements Runnable{
 
 	private Thread pollThread;

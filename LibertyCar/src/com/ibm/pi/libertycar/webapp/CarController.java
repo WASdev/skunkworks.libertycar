@@ -7,12 +7,12 @@ import com.ibm.pi.libertycar.driver.CarDriver;
 public class CarController implements Runnable{
 	//comms info
 	private volatile int ticksTillStop=0;
-	private final int ticksTimeout = 3;//ticks until we stop
+	private final int ticksTimeout = 3;//ticks until dead-man's handle kicks in
 	private volatile boolean run=true;
 	private int timesToRunPerSecond=20;
 	private int sleepSize=1000/timesToRunPerSecond;
 
-	private static double currentMaxSpeed = 50;//TODO just introduced.
+	private static double currentMaxSpeed = 50;
 
 	//Car info
 	private static int speedRest = 1620/4;
@@ -40,7 +40,6 @@ public class CarController implements Runnable{
 	private static double forwardSpeedInc = ((speedRangeMax-speedRest)/forwardIncDivision)*0.25;//used to be 9.2
 	private static double reverseSpeedInc = (((speedRangeMin-speedRest)/reverseIncDivision)*-1)*0.25;//used to be -9.2
 
-	//	private int rev = speedRest-(90/4); //TODO hard coded reverse value - deprecated
 	private static volatile int speedTarget = 0;
 	private boolean reversing = false;
 	private long reverseRequest = 0;
@@ -64,7 +63,7 @@ public class CarController implements Runnable{
 		}else if(steerInc < 0 && steerInc > -1){
 			steerInc = -1;
 		}
-//		System.out.println("steering inc "+steerInc);
+
 		try {
 			carDriver = new CarDriver();
 			carDriver.setPWMFreq(60);
@@ -264,8 +263,8 @@ public class CarController implements Runnable{
 	public static void setMaxSpeed(double newMaxSpeed){
 		if(newMaxSpeed<0){
 			newMaxSpeed=0;
-		} else if(newMaxSpeed>30){
-			newMaxSpeed=30;
+		} else if(newMaxSpeed>200){
+			newMaxSpeed=200;
 		}
 		
 		if(currentMaxSpeed==newMaxSpeed){
@@ -279,7 +278,6 @@ public class CarController implements Runnable{
 		if(newMaxSpeed<40){
 			newMaxSpeed=40;
 		}
-//		reverseSpeedInc=(defaultReverseSpeedInc/100)*newMaxSpeed;
 	}
 
 	public static double getMaxSpeed(){
@@ -371,8 +369,6 @@ public class CarController implements Runnable{
 	 * Call to override user input on steering. Once finished overriding call method with false.
 	 */
 	public static void overrideSteering(boolean override, int steering){
-		System.out.println("overriding steering is "+override+" with a value of "+steering);//TODO debug
-
 		overrideSteering = override;
 		if(override){
 			steerTarget = steering;
