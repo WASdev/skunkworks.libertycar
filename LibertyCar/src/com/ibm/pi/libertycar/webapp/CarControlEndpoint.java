@@ -1,9 +1,7 @@
 package com.ibm.pi.libertycar.webapp;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
@@ -20,13 +18,13 @@ import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
+
+
 @ServerEndpoint("/control")
 public class CarControlEndpoint  {
 	
-	public static HashMap<String, String>ipSessionMap = new HashMap<String, String>();
 	private static CarController carControl;
 	
-	private String sessionId = createSessionId();
 	private String userId;	
 	private Session mySession;
 
@@ -38,7 +36,6 @@ public class CarControlEndpoint  {
 	public void onOpen(Session session, EndpointConfig ec) {
 		//create new session ID for this client and put it in the map
 		mySession = session;
-		createSessionIpLink();		
 	}
 	
 	@OnMessage
@@ -63,40 +60,31 @@ public class CarControlEndpoint  {
 	
 	@OnClose
 	public void onClose(Session session, CloseReason reason) {
-		//clean up the session ID map
-		ipSessionMap.remove(sessionId);
 	}
 	
 	@OnError
 	public void onError(Throwable t) {
 		System.err.println("An error has occurred in the websocket communication. See below for details.");
 		t.printStackTrace();
-		//clean up the session ID map as onClose may never get called
-		ipSessionMap.remove(sessionId);
 	}
 
 	public CarController getController(){
 		return carControl;
 	}
 	
-	private String createSessionId(){
-		return UUID.randomUUID().toString();
-	}
-	
 	private String parseControlsAndReturnMessage(String inboundContent) throws JsonParseException, JsonMappingException, IOException{
 		ObjectMapper mapper = new ObjectMapper();
 		@SuppressWarnings("unchecked")
 		Map<String, Object> userData = mapper.readValue(inboundContent.toString(), Map.class);
-		int throttle = (int) userData.get("throttle");
+		int throttle = (int)userData.get("throttle");
 		int turning = (int) userData.get("turning");
-		return parseControlRequest(throttle, turning);
+		String id = CarAdmin.getIdFromIp((String) userData.get("id"));
+		return parseControlRequest(throttle, turning, id);
 	}
 	
-	private String parseControlRequest(int throttle, int turning){
-		//always get from map in case of map wipe meaning we need to re-calculate id's
-		userId = ipSessionMap.get(sessionId);
+	private String parseControlRequest(int throttle, int turning, String id){
+		userId = id;
 		if(userId == null){
-			createSessionIpLink();
 			return "Generating ID. Please wait.";
 		}
 		String controlMessage = "";
@@ -124,10 +112,5 @@ public class CarControlEndpoint  {
 			controlMessage = ("You do not have control. Your ID is "+userId);
 		}
 		return controlMessage;
-	}
-	
-	private void createSessionIpLink(){
-		ipSessionMap.put(sessionId, null);
-		mySession.getAsyncRemote().sendText("#ipident"+sessionId);
 	}
 }

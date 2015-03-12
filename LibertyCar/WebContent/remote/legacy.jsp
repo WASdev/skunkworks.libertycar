@@ -54,6 +54,8 @@
 			var webSocketOpen = false;
 			var webSocket = new WebSocket('ws://' + window.document.location.host + '/LibertyCar/control');
 			
+			var myId = "<%=request.getRemoteAddr()%>";
+			
 			require([
 				"dojo/dom-geometry",
 				"dojo/_base/array",
@@ -166,7 +168,7 @@
 				
 					document.getElementById("wheel").style.cssText = "display:block;margin:0 auto;-moz-transform: rotate(" + steering/2 + "deg);-webkit-transform: rotate(" + steering/2 + "deg);";
 
-     				webSocket.send(dojo.toJson({throttle:acceleration,turning:steering})); 
+     				webSocket.send(dojo.toJson({throttle:acceleration,turning:steering, id:myId})); 
      			} 
 			}
     	</script>

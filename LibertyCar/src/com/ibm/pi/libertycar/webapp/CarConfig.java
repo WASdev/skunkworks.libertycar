@@ -132,7 +132,7 @@ public class CarConfig extends HttpServlet {
 //		carController.setSteerLeft(leftMax);
 //		carController.setSteerNeutral(steerNeutral);
 //		carController.setSteerRight(rightMax);
-//		carController.setSteerInc(sterringIncrement);
+		carController.setSteerInc(steeringIncrement);
 
 		//speed
 //		carController.setSpeedMax(maxForward);

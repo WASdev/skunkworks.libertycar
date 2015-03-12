@@ -7,7 +7,7 @@ import com.ibm.pi.libertycar.driver.CarDriver;
 public class CarController implements Runnable{
 	//comms info
 	private volatile int ticksTillStop=0;
-	private final int ticksTimeout = 3;//ticks until dead-man's handle kicks in
+	private final int ticksTimeout = 10;//ticks until dead-man's handle kicks in
 	private volatile boolean run=true;
 	private int timesToRunPerSecond=20;
 	private int sleepSize=1000/timesToRunPerSecond;
@@ -17,14 +17,14 @@ public class CarController implements Runnable{
 	//Car info
 	private static int speedRest = 1620/4;
 	private static int speedRangeMin = (speedRest-(920/4));
-	private static int speedRangeMax = (speedRest+(920/4));
+	private static int speedRangeMax = (speedRest+(920/4));//920 for all but ferrari
 
 	private int steerRest = 350;
 
-	private int steerMin = 430;
-	private int steerMax = 300; //was at 280
+	private int steerMin = 280;
+	private int steerMax = 430; //280 for ferrari, 430 for others
 	private int steerRange = (steerMax-steerMin);
-	private double steerInc = ((steerRange/2)/100);//used to be 3.2
+	private double steerInc = ((steerRange/2)/100)*-1;//used to be 3.2
 	private int currentSteer;
 	private static volatile int steerTarget = 0;
 	private int steeringMaxIncrement = 100/4;
@@ -117,7 +117,7 @@ public class CarController implements Runnable{
 				turning=0;//add deadzone
 			}
 			if(turning!=0){
-				turning*=-1; //invert sign as left/right isn't logical.
+				turning*=-1; //invert sign as left/right isn't logical. TODO comment for ferrari car as servo is electrically inverted
 			}
 
 			steerTarget = turning;

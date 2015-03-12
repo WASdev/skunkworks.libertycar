@@ -50,7 +50,7 @@ public class CarDriver {
 			device.write(MODE1, (byte) (oldMode | 0x80));
 
 		} else {
-			System.out.println("Frequency would be set to "+freq);
+			//System.out.println("Frequency would be set to "+freq);
 		}
 	}
 
@@ -62,7 +62,7 @@ public class CarDriver {
 			device.write(LED0_OFF_H+4*channel, (byte) (off >> 8));
 
 		} else {
-			System.out.println("Channel "+channel+ " set to "+on+" : "+off);
+			//System.out.println("Channel "+channel+ " set to "+on+" : "+off);
 		}
 	}
 }

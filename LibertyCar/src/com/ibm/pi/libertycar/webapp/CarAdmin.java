@@ -100,7 +100,6 @@ public class CarAdmin extends HttpServlet {
 				steeringControl.clear();
 				throttleControl.clear();
 				idsToForward.clear();
-				CarControlEndpoint.ipSessionMap.clear();
 			}
 			lengthOfId = idLength;
 		}
