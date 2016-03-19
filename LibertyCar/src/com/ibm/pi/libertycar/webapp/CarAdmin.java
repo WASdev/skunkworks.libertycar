@@ -22,7 +22,7 @@ public class CarAdmin extends HttpServlet {
 	public volatile static ArrayList<String> throttleControl = new ArrayList<String>();
 	public volatile static ArrayList<String> idsToForward = new ArrayList<String>();
 	private String controllerId="";
-	public static int lengthOfId=3;
+	public static int lengthOfId=-1;
 
 	@Produces(MediaType.APPLICATION_JSON)
 	@Override

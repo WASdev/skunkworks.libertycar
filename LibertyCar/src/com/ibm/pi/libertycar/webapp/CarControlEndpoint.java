@@ -1,7 +1,6 @@
 package com.ibm.pi.libertycar.webapp;
 
 import java.io.IOException;
-import java.util.Map;
 
 import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
@@ -14,9 +13,7 @@ import javax.websocket.server.ServerEndpoint;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.core.MediaType;
 
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
+import com.ibm.json.java.JSONObject;
 
 
 
@@ -44,12 +41,6 @@ public class CarControlEndpoint  {
 		String returnMessage = "Unexplained error - see server logs.";
 		try {
 			returnMessage = parseControlsAndReturnMessage(message);
-		} catch (JsonParseException e) {
-			e.printStackTrace();
-			returnMessage = "JSON could not be parsed.";
-		} catch (JsonMappingException e) {
-			e.printStackTrace();
-			returnMessage = "JSON could not be mapped.";
 		} catch (IOException e) {
 			e.printStackTrace();
 			returnMessage = "IOException encountered. Control lost.";
@@ -72,12 +63,10 @@ public class CarControlEndpoint  {
 		return carControl;
 	}
 	
-	private String parseControlsAndReturnMessage(String inboundContent) throws JsonParseException, JsonMappingException, IOException{
-		ObjectMapper mapper = new ObjectMapper();
-		@SuppressWarnings("unchecked")
-		Map<String, Object> userData = mapper.readValue(inboundContent.toString(), Map.class);
-		int throttle = (int)userData.get("throttle");
-		int turning = (int) userData.get("turning");
+	private String parseControlsAndReturnMessage(String inboundContent) throws IOException{
+		JSONObject userData = JSONObject.parse(inboundContent);
+		int throttle = ((Long)userData.get("throttle")).intValue();
+		int turning = ((Long) userData.get("turning")).intValue();
 		String id = CarAdmin.getIdFromIp((String) userData.get("id"));
 		return parseControlRequest(throttle, turning, id);
 	}
