@@ -6,6 +6,7 @@ import com.pi4j.io.i2c.I2CDevice;
 import com.pi4j.io.i2c.I2CFactory;
 
 public class CarDriver {
+	private static final float PWM_DEVICE_FRQUENCY = 60;
 	private I2CBus bus;
 	private I2CDevice device;
 
@@ -23,6 +24,9 @@ public class CarDriver {
 			if(!!!testMode){
 				bus = I2CFactory.getInstance(1);
 				device = bus.getDevice(0x40);
+				device.write(MODE1, (byte) 0x00);
+				System.out.println("Bus wired up");
+				setPWMFreq(PWM_DEVICE_FRQUENCY);
 			} else {
 				System.out.println("Car driver test mode enabled. Car hardware will not be accessed.");
 			}
@@ -32,7 +36,7 @@ public class CarDriver {
 		}
 	}
 
-	public void setPWMFreq(float freq) throws IOException, InterruptedException{
+	private void setPWMFreq(float freq) throws IOException, InterruptedException{
 		//note this is not working all the time. If this does not work use Python script from Adafruit to set frequency.
 		if(!!!testMode){
 			double freqScale = ((25000000/4096)/freq)-1.0; //figure out freq scale

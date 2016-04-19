@@ -64,21 +64,12 @@ public class CarController implements Runnable{
 			steerInc = -1;
 		}
 
-		try {
 			carDriver = new CarDriver();
-			carDriver.setPWMFreq(60);
 			if(controlThread==null){
 				controlThread = new Thread(this);
 				controlThread.start();
 			}
 			//			run=true;
-		} catch (IOException e) {
-			System.err.println("Could not create car driver!");
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			System.err.println("Could not set PWM frequency!");
-			e.printStackTrace();
-		}
 	}
 
 	/**
