@@ -65,6 +65,7 @@ public class CarControlEndpoint  {
 	
 	private String parseControlsAndReturnMessage(String inboundContent) throws IOException{
 		JSONObject userData = JSONObject.parse(inboundContent);
+		
 		int throttle = ((Long)userData.get("throttle")).intValue();
 		int turning = ((Long) userData.get("turning")).intValue();
 		String id = CarAdmin.getIdFromIp((String) userData.get("id"));
