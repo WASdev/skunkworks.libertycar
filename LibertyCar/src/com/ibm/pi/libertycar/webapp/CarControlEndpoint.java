@@ -31,6 +31,8 @@ public class CarControlEndpoint  {
 	
 	private volatile int lastTurn = 0;
 	private volatile int lastThrottle = 0;
+	
+	private volatile String lastMessageGroup = null;
 
 	public static void setControl(CarController control){
 		carControl = control;
@@ -47,16 +49,31 @@ public class CarControlEndpoint  {
 	public void receiveMessage(String message) {
 		logger.log(Level.FINE, "Incoming Message logged: " + message);
 		String returnMessage = "Unexplained error - see server logs.";
+		String currentMessageGroup = null;
 		try {
-			returnMessage = parseControlsAndReturnMessage(message);
+			JSONObject userData = parseMessage(message);
+			Object currentMessageGroupObj = userData.get("msggrp");
+			if (currentMessageGroupObj != null) {
+				currentMessageGroup = (String) currentMessageGroupObj;
+			}
+			returnMessage = parseControlsAndReturnMessage(userData);
 		} catch (IOException e) {
 			e.printStackTrace();
-			returnMessage = "IOException encountered. Control lost.";
+			returnMessage = "Unrecognised instruction encountered. Command ignored. Message was " + message;
 		} finally {
-			mySession.getAsyncRemote().sendText(returnMessage);
+			if (currentMessageGroup == null || !currentMessageGroup.equalsIgnoreCase(lastMessageGroup)) {
+				mySession.getAsyncRemote().sendText(returnMessage);
+			}
+			lastMessageGroup = currentMessageGroup;
 		}
 	}
 	
+	private JSONObject parseMessage(String message) throws IOException {
+		JSONObject userData = null;
+		userData = JSONObject.parse(message);
+		return userData;
+	}
+
 	@OnClose
 	public void onClose(Session session, CloseReason reason) {
 	}
@@ -71,9 +88,8 @@ public class CarControlEndpoint  {
 		return carControl;
 	}
 	
-	private String parseControlsAndReturnMessage(String inboundContent) throws IOException{
-		JSONObject userData = JSONObject.parse(inboundContent);
-		
+	private String parseControlsAndReturnMessage(JSONObject userData) {
+
 		int throttle = lastThrottle ;
 		Long recievedThrottle = (Long) userData.get("throttle");
 		if (recievedThrottle != null) {
