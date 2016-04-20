@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE project>
+<project name="LibertyCar" default="build">
+	<description>
+		Quick script to make putting the war file onto a server a bit faster.
+		Note that this need JSCH on the ant classpath to run the scp task.
+	</description>
+	<property name="sftpId" value="pi" />
+	<property name="sftpPassword" value="raspberry" />
+	<property name="sftpRemoteHost" value="192.168.0.100" />
+	<property name="sftpRemotePath" value="/home/pi/wlp/usr/servers/defaultServer/apps" />
+	<property name="warName" value="LibertyCar.war" />
+	
+	<target name="build">
+		<war destfile="build/${warName}" webxml="WebContent/WEB-INF/web.xml">
+			<fileset dir="WebContent" />
+		</war>
+		
+		<scp 
+			sftp="true"
+			trust="true"
+			todir="${sftpId}:${sftpPassword}@${sftpRemoteHost}:${sftpRemotePath}"
+			file="build/${warName}">
+		</scp>
+	</target>
+
+</project>
