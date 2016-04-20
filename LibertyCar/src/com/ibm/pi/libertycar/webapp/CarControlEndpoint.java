@@ -1,6 +1,8 @@
 package com.ibm.pi.libertycar.webapp;
 
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
@@ -20,10 +22,15 @@ import com.ibm.json.java.JSONObject;
 @ServerEndpoint("/control")
 public class CarControlEndpoint  {
 	
+	private Logger logger = Logger.getLogger("CarEndpointLogger");
+	
 	private static CarController carControl;
 	
 	private String userId;	
 	private Session mySession;
+	
+	private volatile int lastTurn = 0;
+	private volatile int lastThrottle = 0;
 
 	public static void setControl(CarController control){
 		carControl = control;
@@ -38,6 +45,7 @@ public class CarControlEndpoint  {
 	@OnMessage
 	@Consumes(MediaType.APPLICATION_JSON)
 	public void receiveMessage(String message) {
+		logger.log(Level.FINE, "Incoming Message logged: " + message);
 		String returnMessage = "Unexplained error - see server logs.";
 		try {
 			returnMessage = parseControlsAndReturnMessage(message);
@@ -66,8 +74,19 @@ public class CarControlEndpoint  {
 	private String parseControlsAndReturnMessage(String inboundContent) throws IOException{
 		JSONObject userData = JSONObject.parse(inboundContent);
 		
-		int throttle = ((Long)userData.get("throttle")).intValue();
-		int turning = ((Long) userData.get("turning")).intValue();
+		int throttle = lastThrottle ;
+		Long recievedThrottle = (Long) userData.get("throttle");
+		if (recievedThrottle != null) {
+			throttle = recievedThrottle.intValue();
+			lastThrottle = throttle;
+		}
+		
+		int turning = lastTurn;
+		Long recievedTurning = (Long) userData.get("turning");
+		if (recievedTurning != null) {
+			turning = recievedTurning.intValue();
+			lastTurn = turning;
+		}
 		String id = CarAdmin.getIdFromIp((String) userData.get("id"));
 		return parseControlRequest(throttle, turning, id);
 	}
