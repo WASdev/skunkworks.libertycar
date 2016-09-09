@@ -52,7 +52,7 @@
 			var acceleration = 0;
 			var steering = 0;
 			var webSocketOpen = false;
-			var webSocket = new WebSocket('ws://' + window.document.location.host + '/LibertyCar/control');
+			var webSocket = new WebSocket('ws://caplonsgprd-3.integration.ibmcloud.com:15159/LibertyCar/control');
 			
 			var myId = "<%=request.getRemoteAddr()%>";
 			

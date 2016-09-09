@@ -33,7 +33,7 @@ var myId = "<%=request.getRemoteAddr()%>";
 		"dojo/_base/xhr"
 	], function(array, dom, lang, on, has, ready){});
 
-	var webSocket = new WebSocket('ws://' + window.document.location.host + '/LibertyCar/control');
+	var webSocket = new WebSocket('ws://caplonsgprd-3.integration.ibmcloud.com:15159/LibertyCar/control');
 	init();
 
     function init() {
