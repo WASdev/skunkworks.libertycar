@@ -112,7 +112,7 @@ var myId = "<%=request.getRemoteAddr()%>";
 		"Steering: "+steering+
 		" Speed: "+accelerationAsInt;
 		
-		steering = steering*-1;
+//		steering = steering*-1;
 
 		if(webSocketOpen){
 				webSocket.send(dojo.toJson({throttle:accelerationAsInt,turning:steering,id:myId}));
