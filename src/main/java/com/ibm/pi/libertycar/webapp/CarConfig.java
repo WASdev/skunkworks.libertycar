@@ -31,9 +31,6 @@ public class CarConfig extends HttpServlet {
 	private double speedIncrement = 2.3;
 	private int speedTest = 0;
 
-	//arduino
-	private boolean arduinoAlive = ArduinoPoller.getRunning();    
-
 	//command app
 	private static String commandURL = "";
 	private static String carID = "";
@@ -66,14 +63,6 @@ public class CarConfig extends HttpServlet {
 			}
 
 		} else {
-
-			//non-test data
-			
-			//arduino active
-			String arduinoActiveValue = req.getParameter("arduino");
-			if(arduinoActiveValue!=null){
-				arduinoAlive = Boolean.parseBoolean(arduinoActiveValue);
-			}
 
 			//new command app URL
 			String commandURLValue = req.getParameter("commandURL");
@@ -166,9 +155,6 @@ public class CarConfig extends HttpServlet {
 		writer.println("Car neutral frequency: <input type=\"text\" name=\"speedNeutral\" value=\""+speedNeutral+"\"><br>");
 		writer.println("Max reverse frequency: <input type=\"text\" name=\"maxReverse\" value=\""+maxReverse+"\"><br>");
 
-		//set if arduino is alive or dead
-		writer.println("<br/>");
-		writer.println("Arduino active: <input type=\"checkbox\" name=\"arduino\" checked=\""+arduinoAlive+"\"><br>");
 		writer.println("<br/>");
 		//default settings picker
 		writer.println("Use default settings: ");

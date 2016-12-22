@@ -12,15 +12,12 @@ import javax.servlet.annotation.WebListener;
 public class StateListener implements ServletContextListener {	
 	
 	private static CarController carControl;
-	private static ArduinoPoller arduinoPoller;
 
 	/**
      * @see ServletContextListener#contextDestroyed(ServletContextEvent)
      */
     public void contextDestroyed(ServletContextEvent sce) {
     	carControl.setCarStop();
-    	arduinoPoller.setRed();
-    	arduinoPoller.stopThread();
     }
 
 	/**
@@ -33,17 +30,6 @@ public class StateListener implements ServletContextListener {
 		
 		CarControlEndpoint.setControl(carControl);
 		CarConfig.setControl(carControl);		
-		
-		if (arduinoPoller == null) {
-			try{
-				arduinoPoller = new ArduinoPoller();
-			} catch (Exception e){
-				System.err.println("Error with arduino initialisation.");
-				e.printStackTrace();
-			}
-		}
-		
-		//TODO setup automated loading of config for frequencies
     }
 	
 }
