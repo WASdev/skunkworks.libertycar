@@ -1,15 +1,10 @@
 package com.ibm.pi.libertycar.webapp;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
-import javax.json.JsonStructure;
 import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
 import javax.websocket.OnClose;
@@ -49,7 +44,6 @@ public class CarControlEndpoint  {
 	}
 	
 	@OnMessage
-	@Consumes(MediaType.APPLICATION_JSON)
 	public void receiveMessage(String message) {
 		logger.log(Level.FINE, "Incoming Message logged: " + message);
 		String returnMessage = "Unexplained error - see server logs.";
