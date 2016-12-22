@@ -1,9 +1,15 @@
 package com.ibm.pi.libertycar.webapp;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
+import javax.json.JsonStructure;
 import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
 import javax.websocket.OnClose;
@@ -15,9 +21,7 @@ import javax.websocket.server.ServerEndpoint;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.core.MediaType;
 
-import com.ibm.json.java.JSONObject;
-
-
+import com.google.gson.Gson;
 
 @ServerEndpoint("/control")
 public class CarControlEndpoint  {
@@ -51,11 +55,9 @@ public class CarControlEndpoint  {
 		String returnMessage = "Unexplained error - see server logs.";
 		String currentMessageGroup = null;
 		try {
-			JSONObject userData = parseMessage(message);
-			Object currentMessageGroupObj = userData.get("msggrp");
-			if (currentMessageGroupObj != null) {
-				currentMessageGroup = (String) currentMessageGroupObj;
-			}
+			ControlInstruction userData = parseMessage(message);
+			System.out.println(new Date() + ": Instruction: " + userData);
+    		currentMessageGroup = userData.getMsggrp();
 			returnMessage = parseControlsAndReturnMessage(userData);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -68,10 +70,9 @@ public class CarControlEndpoint  {
 		}
 	}
 	
-	private JSONObject parseMessage(String message) throws IOException {
-		JSONObject userData = null;
-		userData = JSONObject.parse(message);
-		return userData;
+	private ControlInstruction parseMessage(String message) throws IOException {
+		Gson gso = new Gson();
+		return gso.fromJson(message, ControlInstruction.class);
 	}
 
 	@OnClose
@@ -88,22 +89,22 @@ public class CarControlEndpoint  {
 		return carControl;
 	}
 	
-	private String parseControlsAndReturnMessage(JSONObject userData) {
+	private String parseControlsAndReturnMessage(ControlInstruction userData) {
 
 		int throttle = lastThrottle ;
-		Long recievedThrottle = (Long) userData.get("throttle");
+		Long recievedThrottle = userData.getThrottle();
 		if (recievedThrottle != null) {
 			throttle = recievedThrottle.intValue();
 			lastThrottle = throttle;
 		}
 		
 		int turning = lastTurn;
-		Long recievedTurning = (Long) userData.get("turning");
+		Long recievedTurning = userData.getTurning();
 		if (recievedTurning != null) {
 			turning = recievedTurning.intValue();
 			lastTurn = turning;
 		}
-		String id = CarAdmin.getIdFromIp((String) userData.get("id"));
+		String id = CarAdmin.getIdFromIp((String) userData.getId());
 		return parseControlRequest(throttle, turning, id);
 	}
 	

@@ -5,6 +5,7 @@ import java.io.IOException;
 import com.pi4j.io.i2c.I2CBus;
 import com.pi4j.io.i2c.I2CDevice;
 import com.pi4j.io.i2c.I2CFactory;
+import com.pi4j.io.i2c.I2CFactory.UnsupportedBusNumberException;
 
 public class I2CController implements Hardware {
 	private static final float PWM_DEVICE_FRQUENCY = 60;
@@ -20,10 +21,14 @@ public class I2CController implements Hardware {
 	private int LED0_OFF_H  = 0x09;
 	
 	public I2CController() throws IOException, InterruptedException {
-		bus = I2CFactory.getInstance(1);
-		device = bus.getDevice(0x40);
-		device.write(MODE1, (byte) 0x00);
-		setPWMFreq(PWM_DEVICE_FRQUENCY);
+		try {
+			bus = I2CFactory.getInstance(1);
+			device = bus.getDevice(0x40);
+			device.write(MODE1, (byte) 0x00);
+			setPWMFreq(PWM_DEVICE_FRQUENCY);
+		} catch (UnsupportedBusNumberException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	private void setPWMFreq(float freq) throws IOException, InterruptedException{
