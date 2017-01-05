@@ -1,10 +1,10 @@
 package com.ibm.pi.libertycar.driver;
 import java.io.IOException;
 
-public class CarDriver {
+public class PWMInterface {
 	private final Hardware hardwareInterface;
 
-	public CarDriver()  {
+	public PWMInterface()  {
 		String testModeEnv = System.getenv("TEST_MODE");
 		boolean testMode = Boolean.parseBoolean(testModeEnv);
 		hardwareInterface = HardwareFactory.getHardware(testMode);

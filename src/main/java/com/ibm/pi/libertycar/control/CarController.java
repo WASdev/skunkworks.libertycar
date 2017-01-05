@@ -1,7 +1,7 @@
-package com.ibm.pi.libertycar.webapp;
+package com.ibm.pi.libertycar.control;
 import java.io.IOException;
 
-import com.ibm.pi.libertycar.driver.CarDriver;
+import com.ibm.pi.libertycar.driver.PWMInterface;
 
 
 public class CarController implements Runnable{
@@ -49,7 +49,7 @@ public class CarController implements Runnable{
 	private int steering = 14;
 	private int motor = 15;
 
-	private CarDriver carDriver;
+	private PWMInterface carDriver;
 
 	private Thread controlThread;
 
@@ -64,7 +64,7 @@ public class CarController implements Runnable{
 			steerInc = -1;
 		}
 
-			carDriver = new CarDriver();
+			carDriver = new PWMInterface();
 			if(controlThread==null){
 				controlThread = new Thread(this);
 				controlThread.start();

@@ -1,5 +1,37 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath "org.hidetake:gradle-ssh-plugin:2.7.0"
+    }
+}
+
+apply plugin: 'org.hidetake.ssh'
+
 apply plugin: 'eclipse'
 apply plugin: 'war'
+
+remotes {
+  carPiHost {
+    host = '192.168.168.4'
+    user = 'pi'
+    password = 'raspberry'
+    knownHosts = allowAnyHosts
+  }
+}
+
+task upload {
+doLast{
+  ssh.run {
+    session(remotes.carPiHost) {
+      put from: "${war.archivePath}", into: '/home/pi/wlp/usr/servers/defaultServer/apps/LibertyCar.war'
+      
+    }
+  }
+  }
+}
 
 repositories {
     mavenCentral()

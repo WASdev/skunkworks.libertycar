@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import com.ibm.pi.libertycar.webapp.CarController;
+import com.ibm.pi.libertycar.control.CarController;
 
 @WebServlet("/admin")
 public class CarAdmin extends HttpServlet {

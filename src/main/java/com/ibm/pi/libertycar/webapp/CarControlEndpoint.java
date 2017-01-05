@@ -13,10 +13,9 @@ import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.core.MediaType;
 
 import com.google.gson.Gson;
+import com.ibm.pi.libertycar.control.CarController;
 
 @ServerEndpoint("/control")
 public class CarControlEndpoint  {

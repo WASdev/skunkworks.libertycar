@@ -4,6 +4,8 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 
+import com.ibm.pi.libertycar.control.CarController;
+
 /**
  * Application Lifecycle Listener implementation class StateListener
  *
