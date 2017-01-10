@@ -13,15 +13,23 @@ buildscript {
 }
 
 apply plugin: 'org.hidetake.ssh'
-
 apply plugin: 'eclipse'
 apply plugin: 'war'
 apply plugin: 'liberty'
+
+war {
+  archiveName = 'LibertyCar.war'
+}
 
 liberty {
   installDir = "${buildDir}/wlp"
   install {
     version = '16.0.0_04'
+  }
+
+  packageLiberty {
+    archive = "${buildDir}/LibertyCar.zip"
+    include = "minify"
   }
 }
 
@@ -44,6 +52,18 @@ task uploadWar {
   }
 }
 
+task uploadPackage {
+  doLast{
+    ssh.run {
+      session(remotes.carPiHost) {
+        put from: "${buildDir}/LibertyCar.zip", into: '/home/pi/LibertyCar.zip'
+        execute "rm -rf /home/pi/wlp"
+        execute "unzip /home/pi/LibertyCar.zip"
+      }
+    }
+  }
+}
+
 repositories {
   mavenCentral()
 }
@@ -60,3 +80,15 @@ dependencies {
   testCompile 'junit:junit:4.12'
 }
 
+task copyUsrDir(type: Copy) {
+  from 'src/main/wlp/usr'
+  into "${buildDir}/wlp/usr"
+}
+
+task deployAppToAppsDir(type: Copy, dependsOn: ['assemble', 'copyUsrDir']) {
+  from "${war.archivePath}"
+  into "${buildDir}/wlp/usr/servers/defaultServer/apps"
+}
+
+build.dependsOn libertyPackage
+libertyPackage.dependsOn deployAppToAppsDir

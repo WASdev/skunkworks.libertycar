@@ -30,7 +30,7 @@ public class CarConfig extends HttpServlet {
 	private int maxForward = 635;
 	private int speedNeutral = 405;
 	private int maxReverse = 188;
-	private double speedIncrement = 2.3;
+//	private double speedIncrement = 2.3;
 	private int speedTest = 0;
 
 	//command app
@@ -116,7 +116,7 @@ public class CarConfig extends HttpServlet {
 
 		//calc increments
 		steeringIncrement = (rightMax-leftMax)/100;
-		speedIncrement = (maxForward-maxReverse)/200; //200% is actually max speed (but we hide that as it is normally too high)
+//		speedIncrement = (maxForward-maxReverse)/200; //200% is actually max speed (but we hide that as it is normally too high)
 
 		//set values in car controller
 		//steering
