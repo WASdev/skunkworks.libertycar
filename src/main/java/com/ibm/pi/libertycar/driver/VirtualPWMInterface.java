@@ -3,7 +3,7 @@ package com.ibm.pi.libertycar.driver;
 import java.io.IOException;
 import java.util.Date;
 
-public class TestController implements Hardware {
+public class VirtualPWMInterface implements PWMInterface {
 	
 	private boolean first = true;
 	private int lastChannel = -1;

@@ -49,7 +49,7 @@ public class CarController implements Runnable{
 	private int steering = 14;
 	private int motor = 15;
 
-	private PWMInterface carDriver;
+	private PWMInterface pwmInterface;
 
 	private Thread controlThread;
 
@@ -57,14 +57,14 @@ public class CarController implements Runnable{
 	private static boolean overrideSteering = false;
 	private static boolean overrideSpeed = false;
 
-	public CarController(){
+	public CarController(PWMInterface pwmInterface){
 		if(steerInc < 1 && steerInc >= 0){
 			steerInc = 1;
 		}else if(steerInc < 0 && steerInc > -1){
 			steerInc = -1;
 		}
 
-			carDriver = new PWMInterface();
+			this.pwmInterface = pwmInterface;
 			if(controlThread==null){
 				controlThread = new Thread(this);
 				controlThread.start();
@@ -133,7 +133,7 @@ public class CarController implements Runnable{
 					if(reverseRequest+reverseTimeout<=System.currentTimeMillis()){
 						try {
 							reverseRequest = 0;
-							carDriver.setPWM(motor,0,speedRest);
+							pwmInterface.setPWM(motor,0,speedRest);
 							reversing = true;
 							Thread.sleep(75);
 						} catch (IOException e) {
@@ -153,7 +153,7 @@ public class CarController implements Runnable{
 		}
 
 		try {
-			carDriver.setPWM(motor,0,(int)speedOffset);
+			pwmInterface.setPWM(motor,0,(int)speedOffset);
 		} catch (IOException e) {
 			System.err.println("Setting speed of "+speedOffset+" failed");
 			e.printStackTrace();
@@ -178,7 +178,7 @@ public class CarController implements Runnable{
 		int steeringOffset = (int) (steerInc*steeringToMake)+steerRest;
 
 		try {
-			carDriver.setPWM(steering,0,steeringOffset);
+			pwmInterface.setPWM(steering,0,steeringOffset);
 			currentSteer=steeringToMake;
 		} catch (IOException e) {
 			System.err.println("Setting steering of "+steeringOffset+" failed");
@@ -198,7 +198,7 @@ public class CarController implements Runnable{
 			while(run){
 				if (ticksTillStop<=0){
 					//stop car
-					carDriver.setPWM(motor,0,speedRest);
+					pwmInterface.setPWM(motor,0,speedRest);
 				} else {
 					ticksTillStop--;
 
@@ -214,8 +214,8 @@ public class CarController implements Runnable{
 
 			e.printStackTrace();
 			try {
-				carDriver.setPWM(motor,0,speedRest);
-				carDriver.setPWM(steering,0,steerRest);
+				pwmInterface.setPWM(motor,0,speedRest);
+				pwmInterface.setPWM(steering,0,steerRest);
 			} catch (IOException e1) {
 				e1.printStackTrace();
 			}
@@ -228,8 +228,8 @@ public class CarController implements Runnable{
 	public void setCarStop(){
 		run=false;
 		try {
-			carDriver.setPWM(motor,0,speedRest);
-			carDriver.setPWM(steering,0,steerRest);
+			pwmInterface.setPWM(motor,0,speedRest);
+			pwmInterface.setPWM(steering,0,steerRest);
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
@@ -294,7 +294,7 @@ public class CarController implements Runnable{
 
 	public void testSteering(int frequency, int time){
 		try {
-			carDriver.setPWM(steering,frequency,frequency);
+			pwmInterface.setPWM(steering,frequency,frequency);
 			Thread.sleep(time*1000);
 		} catch (IOException | InterruptedException e) {
 			e.printStackTrace();
@@ -303,7 +303,7 @@ public class CarController implements Runnable{
 
 	public void testSpeed(int frequency, int time){
 		try {
-			carDriver.setPWM(motor,frequency,speedRest);
+			pwmInterface.setPWM(motor,frequency,speedRest);
 			if(time>10*1000){
 				time = 10;
 			}
@@ -376,11 +376,5 @@ public class CarController implements Runnable{
 		}
 	}
 	
-	public static int getSteerTarget(){
-		return steerTarget;
-	}
-	
-	public static int getSpeedTarget(){
-		return speedTarget;		
-	}
+
 }

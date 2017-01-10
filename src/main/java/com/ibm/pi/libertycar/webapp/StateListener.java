@@ -5,6 +5,9 @@ import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 
 import com.ibm.pi.libertycar.control.CarController;
+import com.ibm.pi.libertycar.driver.PWMInterface;
+import com.ibm.pi.libertycar.driver.PhysicalPWMInterface;
+import com.ibm.pi.libertycar.driver.VirtualPWMInterface;
 
 /**
  * Application Lifecycle Listener implementation class StateListener
@@ -27,7 +30,14 @@ public class StateListener implements ServletContextListener {
      */
     public void contextInitialized(ServletContextEvent sce) {
 		if (carControl == null) {
-			carControl = new CarController();
+			PWMInterface pwmInterface = null;
+			try {
+				pwmInterface = new PhysicalPWMInterface();
+			} catch (PWMInterfaceUnavailableException e) {
+				pwmInterface = new VirtualPWMInterface();
+			}
+			
+			carControl = new CarController(pwmInterface);
 		}
 		
 		CarControlEndpoint.setControl(carControl);

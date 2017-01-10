@@ -10,6 +10,8 @@ import javax.websocket.SendHandler;
 import org.junit.Assert;
 
 public class MockAsyncRemote implements Async {
+	
+	private volatile String lastMessage = null;
 
 	@Override
 	public void setBatchingAllowed(boolean allowed) throws IOException {
@@ -61,6 +63,7 @@ public class MockAsyncRemote implements Async {
 
 	@Override
 	public Future<Void> sendText(String text) {
+		lastMessage = text;
 		return null;
 	}
 
@@ -86,6 +89,10 @@ public class MockAsyncRemote implements Async {
 	public void sendObject(Object data, SendHandler handler) {
 		Assert.fail("Method on MockAsyncRemote not implemented");
 
+	}
+	
+	public String getLastMessage() {
+		return lastMessage;
 	}
 
 }

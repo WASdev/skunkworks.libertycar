@@ -2,12 +2,13 @@ package com.ibm.pi.libertycar.driver;
 
 import java.io.IOException;
 
+import com.ibm.pi.libertycar.webapp.PWMInterfaceUnavailableException;
 import com.pi4j.io.i2c.I2CBus;
 import com.pi4j.io.i2c.I2CDevice;
 import com.pi4j.io.i2c.I2CFactory;
 import com.pi4j.io.i2c.I2CFactory.UnsupportedBusNumberException;
 
-public class I2CController implements Hardware {
+public class PhysicalPWMInterface implements PWMInterface {
 	private static final float PWM_DEVICE_FRQUENCY = 60;
 	
 	private I2CBus bus;
@@ -20,7 +21,7 @@ public class I2CController implements Hardware {
 	private int LED0_OFF_L   = 0x08;
 	private int LED0_OFF_H  = 0x09;
 	
-	public I2CController() throws IOException, InterruptedException {
+	public PhysicalPWMInterface() throws PWMInterfaceUnavailableException {
 		try {
 			bus = I2CFactory.getInstance(1);
 			device = bus.getDevice(0x40);
@@ -28,6 +29,9 @@ public class I2CController implements Hardware {
 			setPWMFreq(PWM_DEVICE_FRQUENCY);
 		} catch (UnsupportedBusNumberException e) {
 			e.printStackTrace();
+		} catch (Throwable t) {
+			t.printStackTrace();
+			throw new PWMInterfaceUnavailableException();
 		}
 	}
 	

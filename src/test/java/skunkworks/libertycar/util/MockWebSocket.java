@@ -20,10 +20,13 @@ import javax.websocket.WebSocketContainer;
 import org.junit.Assert;
 
 public class MockWebSocket implements Session {
+	
+	private MockAsyncRemote mockRemoteAsync = new MockAsyncRemote();
 
 	@Override
 	public WebSocketContainer getContainer() {
 		Assert.fail("Method on MockWebSocket not implemented");
+		
 		return null;
 	}
 
@@ -125,7 +128,7 @@ public class MockWebSocket implements Session {
 
 	@Override
 	public Async getAsyncRemote() {
-		return new MockAsyncRemote();
+		return mockRemoteAsync;
 	}
 
 	@Override
@@ -192,6 +195,10 @@ public class MockWebSocket implements Session {
 	public Set<Session> getOpenSessions() {
 		Assert.fail("Method on MockWebSocket not implemented");
 		return null;
+	}
+	
+	public String getLastMessage() {
+		return mockRemoteAsync.getLastMessage();
 	}
 
 }
