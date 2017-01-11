@@ -34,6 +34,7 @@ public class CarControlEndpoint  {
 
 	public static void setControl(CarController control){
 		carControl = control;
+		
 	}
 	
 	@OnOpen

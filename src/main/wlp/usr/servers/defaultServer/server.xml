@@ -2,10 +2,10 @@
 
   <!-- Enable features -->
   <featureManager>
-    <feature>jsp-2.2</feature>
+    <feature>jsp-2.3</feature>
     <feature>localConnector-1.0</feature>
-    <feature>websocket-1.0</feature>
-    <feature>jaxrs-1.1</feature>
+    <feature>websocket-1.1</feature>
+    <feature>jaxrs-2.0</feature>
     <!-- <feature>usr:arduino-1.0</feature> -->
     <feature>servlet-3.1</feature>
   </featureManager>

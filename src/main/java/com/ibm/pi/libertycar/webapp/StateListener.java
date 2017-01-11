@@ -29,6 +29,7 @@ public class StateListener implements ServletContextListener {
      * @see ServletContextListener#contextInitialized(ServletContextEvent)
      */
     public void contextInitialized(ServletContextEvent sce) {
+    	System.out.println("Context has been initialised");
 		if (carControl == null) {
 			PWMInterface pwmInterface = null;
 			try {

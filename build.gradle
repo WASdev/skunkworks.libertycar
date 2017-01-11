@@ -6,11 +6,16 @@ buildscript {
 
   dependencies {
     classpath "org.hidetake:gradle-ssh-plugin:2.7.0"
-    classpath 'net.wasdev.wlp.gradle.plugins:liberty-gradle-plugin:1.0'
-    classpath files('gradle/wlp-anttasks.jar')
+    //classpath 'net.wasdev.wlp.gradle.plugins:liberty-gradle-plugin:1.0'
+    classpath files('../ci.gradle/build/libs/liberty-gradle-plugin-1.1-SNAPSHOT.jar')
+    classpath files('../ci.ant/target/wlp-anttasks-1.3-SNAPSHOT.jar')
+    //classpath files('build/wlp/lib/com.ibm.ws.kernel.boot_1.0.15.jar')
+    classpath files('build/wlp/bin/tools/ws-server.jar')
   }
   
 }
+
+import groovy.xml.*
 
 apply plugin: 'org.hidetake.ssh'
 apply plugin: 'eclipse'
@@ -23,6 +28,7 @@ war {
 
 liberty {
   installDir = "${buildDir}/wlp"
+  serverName = 'defaultServer'
   install {
     version = '16.0.0_04'
   }
@@ -69,7 +75,9 @@ repositories {
 }
 
 dependencies {
-  providedCompile fileTree(dir: "${buildDir}/wlp/dev/api/spec", include: '*.jar')
+  providedCompile files(fileTree(dir: "${buildDir}/wlp/dev/api/spec", include: '*.jar')) {
+    builtBy 'installLiberty'
+  }
 
   compile 'com.pi4j:pi4j-core:1.1'
   compile 'com.pi4j:pi4j-device:1.1'
@@ -90,5 +98,32 @@ task deployAppToAppsDir(type: Copy, dependsOn: ['assemble', 'copyUsrDir']) {
   into "${buildDir}/wlp/usr/servers/defaultServer/apps"
 }
 
+tasks.compileJava.dependsOn installLiberty
+tasks.eclipseClasspath.dependsOn installLiberty
+
 build.dependsOn libertyPackage
 libertyPackage.dependsOn deployAppToAppsDir
+
+
+//task looseConfig(dependsOn : ['copyUsrDir', 'libertyStart']) {
+task looseConfig() {
+  doLast {
+    def writer = new StringWriter()
+    def looseConfigFile = new MarkupBuilder(writer)
+    looseConfigFile.mkp.xmlDeclaration(version:'1.0', encoding: 'UTF-8' )
+    looseConfigFile.archive {
+          dir(sourceOnDisk: "${webAppDir}", targetInArchive: "/"){}
+          dir(sourceOnDisk: "${buildDir}/classes/main", targetInArchive: "/WEB-INF/classes"){}
+          dir(sourceOnDisk: 'C:\\Users\\IBM_ADMIN\\.gradle\\caches\\modules-2\\files-2.1\\com.google.code.gson\\gson\\2.8.0\\c4ba5371a29ac9b2ad6129b1d39ea38750043eff', targetInArchive: "/WEB-INF/lib"){}
+    }
+    println writer
+    
+    FileWriter fw = new FileWriter("${buildDir}/wlp/usr/servers/defaultServer/apps/LibertyCar.war.xml");
+fw.write(writer.toString());
+fw.close();
+
+
+
+  }
+}
+
