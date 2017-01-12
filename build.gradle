@@ -12,7 +12,6 @@ buildscript {
     //classpath files('build/wlp/lib/com.ibm.ws.kernel.boot_1.0.15.jar')
     classpath files('build/wlp/bin/tools/ws-server.jar')
   }
-  
 }
 
 import groovy.xml.*
@@ -26,6 +25,21 @@ war {
   archiveName = 'LibertyCar.war'
 }
 
+eclipse {
+  classpath {
+    defaultOutputDir = file("${buildDir}/eclipse-classes/default")
+    file {
+      beforeMerged { classpath -> 
+        classpath.entries.clear()
+      }
+      whenMerged {  cp -> 
+        cp.entries.findAll { it.kind == "src" && it.path.startsWith("src/main/") }*.output = "build/eclipse-classes/main" 
+        cp.entries.findAll { it.kind == "src" && it.path.startsWith("src/test/") }*.output = "build/eclipse-classes/test" 
+      }
+    }
+  }
+}
+    
 liberty {
   installDir = "${buildDir}/wlp"
   serverName = 'defaultServer'
@@ -104,7 +118,6 @@ tasks.eclipseClasspath.dependsOn installLiberty
 build.dependsOn libertyPackage
 libertyPackage.dependsOn deployAppToAppsDir
 
-
 //task looseConfig(dependsOn : ['copyUsrDir', 'libertyStart']) {
 task looseConfig() {
   doLast {
@@ -112,18 +125,19 @@ task looseConfig() {
     def looseConfigFile = new MarkupBuilder(writer)
     looseConfigFile.mkp.xmlDeclaration(version:'1.0', encoding: 'UTF-8' )
     looseConfigFile.archive {
-          dir(sourceOnDisk: "${webAppDir}", targetInArchive: "/"){}
-          dir(sourceOnDisk: "${buildDir}/classes/main", targetInArchive: "/WEB-INF/classes"){}
-          dir(sourceOnDisk: 'C:\\Users\\IBM_ADMIN\\.gradle\\caches\\modules-2\\files-2.1\\com.google.code.gson\\gson\\2.8.0\\c4ba5371a29ac9b2ad6129b1d39ea38750043eff', targetInArchive: "/WEB-INF/lib"){}
+      dir(sourceOnDisk: "${webAppDir}", targetInArchive: "/"){}
+      dir(sourceOnDisk: "${buildDir}/eclipse-classes/main", targetInArchive: "/WEB-INF/classes"){}
+      dir(sourceOnDisk: "${buildDir}/webLibs", targetInArchive: "/WEB-INF/lib"){}
     }
     println writer
-    
+
     FileWriter fw = new FileWriter("${buildDir}/wlp/usr/servers/defaultServer/apps/LibertyCar.war.xml");
-fw.write(writer.toString());
-fw.close();
-
-
-
+    fw.write(writer.toString());
+    fw.close();
   }
 }
 
+task generateWebInfLib(type: Copy) {
+  into "${buildDir}/webLibs"
+  from configurations.compile - configurations.providedCompile
+}

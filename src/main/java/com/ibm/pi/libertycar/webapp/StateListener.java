@@ -14,35 +14,34 @@ import com.ibm.pi.libertycar.driver.VirtualPWMInterface;
  *
  */
 @WebListener
-public class StateListener implements ServletContextListener {	
-	
-	private static CarController carControl;
+public class StateListener implements ServletContextListener {
 
-	/**
+    private static CarController carControl;
+
+    /**
      * @see ServletContextListener#contextDestroyed(ServletContextEvent)
      */
     public void contextDestroyed(ServletContextEvent sce) {
-    	carControl.setCarStop();
+        carControl.setCarStop();
     }
 
-	/**
+    /**
      * @see ServletContextListener#contextInitialized(ServletContextEvent)
      */
     public void contextInitialized(ServletContextEvent sce) {
-    	System.out.println("Context has been initialised");
-		if (carControl == null) {
-			PWMInterface pwmInterface = null;
-			try {
-				pwmInterface = new PhysicalPWMInterface();
-			} catch (PWMInterfaceUnavailableException e) {
-				pwmInterface = new VirtualPWMInterface();
-			}
-			
-			carControl = new CarController(pwmInterface);
-		}
-		
-		CarControlEndpoint.setControl(carControl);
-		CarConfig.setControl(carControl);		
+        if (carControl == null) {
+            PWMInterface pwmInterface = null;
+            try {
+                pwmInterface = new PhysicalPWMInterface();
+            } catch (PWMInterfaceUnavailableException e) {
+                pwmInterface = new VirtualPWMInterface();
+            }
+
+            carControl = new CarController(pwmInterface);
+        }
+
+        CarControlEndpoint.setControl(carControl);
+        CarConfig.setControl(carControl);
     }
-	
+
 }
