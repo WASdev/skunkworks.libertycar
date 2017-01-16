@@ -6,11 +6,7 @@ buildscript {
 
   dependencies {
     classpath "org.hidetake:gradle-ssh-plugin:2.7.0"
-    //classpath 'net.wasdev.wlp.gradle.plugins:liberty-gradle-plugin:1.0'
-    classpath files('../ci.gradle/build/libs/liberty-gradle-plugin-1.1-SNAPSHOT.jar')
-    classpath files('../ci.ant/target/wlp-anttasks-1.3-SNAPSHOT.jar')
-    //classpath files('build/wlp/lib/com.ibm.ws.kernel.boot_1.0.15.jar')
-    classpath files('build/wlp/bin/tools/ws-server.jar')
+    classpath 'net.wasdev.wlp.gradle.plugins:liberty-gradle-plugin:1.0'
   }
 }
 
@@ -20,6 +16,10 @@ apply plugin: 'org.hidetake.ssh'
 apply plugin: 'eclipse'
 apply plugin: 'war'
 apply plugin: 'liberty'
+
+repositories {
+  mavenCentral()
+}
 
 war {
   archiveName = 'LibertyCar.war'
@@ -43,6 +43,7 @@ eclipse {
 liberty {
   installDir = "${buildDir}/wlp"
   serverName = 'defaultServer'
+  outputDir = "${buildDir}/wlp-output"
   install {
     version = '16.0.0_04'
   }
@@ -52,6 +53,9 @@ liberty {
     include = "minify"
   }
 }
+tasks.compileJava.dependsOn installLiberty
+tasks.eclipseClasspath.dependsOn installLiberty
+build.dependsOn libertyPackage
 
 remotes {
   carPiHost {
@@ -60,6 +64,23 @@ remotes {
     password = 'raspberry'
     knownHosts = allowAnyHosts
   }
+}
+
+dependencies {
+  providedCompile files(fileTree(dir: "${buildDir}/wlp/dev/api/spec", include: '*.jar')) {
+    builtBy 'installLiberty'
+  }
+
+  compile 'com.pi4j:pi4j-core:1.1'
+  compile 'com.pi4j:pi4j-device:1.1'
+  compile 'com.pi4j:pi4j-gpio-extension:1.1'
+  compile('com.pi4j:pi4j-service:1.1') {
+    exclude group: 'org.osgi'
+  }
+  compile 'com.google.code.gson:gson:2.8.0'
+
+  testCompile 'junit:junit:4.12'
+  
 }
 
 task uploadWar {
@@ -84,44 +105,29 @@ task uploadPackage {
   }
 }
 
-repositories {
-  mavenCentral()
-}
-
-dependencies {
-  providedCompile files(fileTree(dir: "${buildDir}/wlp/dev/api/spec", include: '*.jar')) {
-    builtBy 'installLiberty'
-  }
-
-  compile 'com.pi4j:pi4j-core:1.1'
-  compile 'com.pi4j:pi4j-device:1.1'
-  compile 'com.pi4j:pi4j-gpio-extension:1.1'
-  compile 'com.pi4j:pi4j-service:1.1'
-  compile 'com.google.code.gson:gson:2.8.0'
-
-  testCompile 'junit:junit:4.12'
-}
-
-task copyUsrDir(type: Copy) {
-  from 'src/main/wlp/usr'
-  into "${buildDir}/wlp/usr"
-}
-
-task deployAppToAppsDir(type: Copy, dependsOn: ['assemble', 'copyUsrDir']) {
+task deployAppToAppsDir(type: Copy, dependsOn: ['assemble', 'copyUsrDir', 'removeLooseConfig']) {
   from "${war.archivePath}"
   into "${buildDir}/wlp/usr/servers/defaultServer/apps"
 }
 
-tasks.compileJava.dependsOn installLiberty
-tasks.eclipseClasspath.dependsOn installLiberty
+task removeAppFromAppsDir(type: Delete) {
+  delete "${war.archivePath}"
+}
 
-build.dependsOn libertyPackage
+task removeLooseConfig(type: Delete) {
+  delete "${buildDir}/wlp/usr/servers/defaultServer/apps/LibertyCar.war.xml"
+}
+
+task generateWebInfLib(type: Copy) {
+  into "${buildDir}/webLibs"
+  from configurations.compile - configurations.providedCompile
+}
+
 libertyPackage.dependsOn deployAppToAppsDir
 
-//task looseConfig(dependsOn : ['copyUsrDir', 'libertyStart']) {
-task looseConfig() {
+task looseConfig(dependsOn : ['copyUsrDir', 'generateWebInfLib', 'libertyStart', 'removeAppFromAppsDir']) {
   doLast {
-    def writer = new StringWriter()
+    def writer = new FileWriter("${buildDir}/wlp/usr/servers/defaultServer/apps/LibertyCar.war.xml");
     def looseConfigFile = new MarkupBuilder(writer)
     looseConfigFile.mkp.xmlDeclaration(version:'1.0', encoding: 'UTF-8' )
     looseConfigFile.archive {
@@ -129,15 +135,13 @@ task looseConfig() {
       dir(sourceOnDisk: "${buildDir}/eclipse-classes/main", targetInArchive: "/WEB-INF/classes"){}
       dir(sourceOnDisk: "${buildDir}/webLibs", targetInArchive: "/WEB-INF/lib"){}
     }
-    println writer
 
-    FileWriter fw = new FileWriter("${buildDir}/wlp/usr/servers/defaultServer/apps/LibertyCar.war.xml");
-    fw.write(writer.toString());
-    fw.close();
+    writer.close();
   }
 }
 
-task generateWebInfLib(type: Copy) {
-  into "${buildDir}/webLibs"
-  from configurations.compile - configurations.providedCompile
+task copyUsrDir(type: Copy) {
+  from 'src/main/wlp/usr'
+  into "${buildDir}/wlp/usr"
 }
+
