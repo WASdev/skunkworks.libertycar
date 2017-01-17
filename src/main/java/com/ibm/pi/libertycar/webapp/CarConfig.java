@@ -34,8 +34,8 @@ public class CarConfig extends HttpServlet {
 	private int speedTest = 0;
 
 	//command app
-	private static String commandURL = "";
-	private static String carID = "";
+	public static String commandURL = "";
+	public static String carID = "";
 
 	private static CarController carController;
 

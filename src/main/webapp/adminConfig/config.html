@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+    <script src="lib/jquery-2.1.1.min.js" ></script>
+    <title>Liberty car configuration panel</title>
+  </head>
+  <body>
+    <h1>Car frequency ranges</h1>
+    Max left frequency: <input id="leftMax" value="430" type="text" /><br />
+    Straight ahead frequency: <input id="steeringNeutral" value="350" type="text" /><br />
+    Max right frequency: <input id="rightMax" value="280" type="text" /><br />
+    Car max forwards frequency: <input id="maxForward" value="635" type="text" /><br />
+    Car neutral frequency: <input id="speedNeutral" value="405" type="text" /><br />
+    Max reverse frequency: <input id="maxReverse" value="188" type="text" /><br />
+    <br />
+    <input id="submitFrequencies" value="Submit frequencies" type="submit" />
+    <br />
+    <h1>Test frequencies</h1>
+    Test steering frequency of: <input id="steeringTest" value="0" type="text" /><input id="testSteeringFrequency" value="Test Steering frequency" type="submit" /><br />
+    Test speed frequency of: <input id="speedTest" value="0" type="text" /><input id="testSpeedFrequency" value="Test Speed frequency" type="submit" />
+    <br />
+    <h1>Command app settings</h1>
+    URL for command app: <input id="commandURL" value="" type="text" /><br />
+    Car ID: <input id="carID" value="" type="text" /><br />
+    <input id="submitNewURL" value="Submit new URL" type="submit" />
+
+    <script>
+      $(document).ready(function(){
+        $('#submitFrequencies').click(function() {
+          var frequencySettings = {
+            "leftMax": $('#leftMax').val(),
+            "steeringNeutral" : $('#steeringNeutral').val(),
+            "rightMax" : $('#rightMax').val(),
+            "maxForward" : $('#maxForward').val(),
+            "speedNeutral" : $('#speedNeutral').val(),
+            "maxReverse" : $('#maxReverse').val()
+          };
+          $.ajax({
+            url: "/LibertyCar/api/config",
+            contentType: "application/json",
+            type: "POST",
+            data: JSON.stringify(frequencySettings),
+            success: function(data, status) {
+              $('#leftMax').val(data.leftMax);
+              $('#steeringNeutral').val(data.steeringNeutral);
+              $('#rightMax').val(data.rightMax);
+              $('#maxForward').val(data.maxForward);
+              $('#speedNeutral').val(data.speedNeutral);
+              $('#maxReverse').val(data.maxReverse);
+            }
+          })
+        });
+
+        $('#testSteeringFrequency').click(function() {
+          $.ajax({
+            url: "/LibertyCar/api/frequencyTest/steering",
+            contentType: "application/json",
+            type: "GET",
+            data: "testFrequency=" + $('#steeringTest').val(),
+            success: function(data, status) {}
+          })
+        });
+
+        $('#testSpeedFrequency').click(function() {
+          $.ajax({
+            url: "/LibertyCar/api/frequencyTest/speed",
+            contentType: "application/json",
+            type: "GET",
+            data: "testFrequency=" + $('#speedTest').val(),
+            success: function(data, status) {}
+          })
+        });
+        
+        
+        $('#submitNewURL').click(function() {
+            var commandAppSettings = {
+              "commandURL": $('#commandURL').val(),
+              "carID" : $('#carID').val()
+            };
+            $.ajax({
+              url: "/LibertyCar/api/commandApp",
+              contentType: "application/json",
+              type: "POST",
+              data: JSON.stringify(commandAppSettings),
+              success: function(data, status) {
+                $('#commandURL').val(data.commandURL);
+                $('#carID').val(data.carID);
+              }
+            })
+          });
+        
+      }); 
+      
+      
+      
+      
+    </script>
+  </body>
+</html>

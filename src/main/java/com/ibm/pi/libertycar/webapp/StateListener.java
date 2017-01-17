@@ -4,6 +4,7 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 
+import com.ibm.pi.libertycar.config.Globals;
 import com.ibm.pi.libertycar.control.CarController;
 import com.ibm.pi.libertycar.driver.PWMInterface;
 import com.ibm.pi.libertycar.driver.PhysicalPWMInterface;
@@ -42,6 +43,7 @@ public class StateListener implements ServletContextListener {
 
         CarControlEndpoint.setControl(carControl);
         CarConfig.setControl(carControl);
+        Globals.setController(carControl);
     }
 
 }
