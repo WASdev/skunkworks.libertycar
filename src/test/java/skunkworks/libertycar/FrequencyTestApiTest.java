@@ -8,8 +8,9 @@ import java.util.Deque;
 import org.junit.Test;
 
 import com.ibm.pi.libertycar.config.Globals;
-import com.ibm.pi.libertycar.control.CarController;
+import com.ibm.pi.libertycar.control.CarControllerInterface;
 import com.ibm.pi.libertycar.control.FrequencyInstruction;
+import com.ibm.pi.libertycar.control.threaded.ThreadBasedCarController;
 import com.ibm.pi.libertycar.rest.config.FrequencyTestApi;
 
 import skunkworks.libertycar.util.CachingPWMInterface;
@@ -19,7 +20,7 @@ public class FrequencyTestApiTest {
     @Test
     public void steeringTest() {
         CachingPWMInterface cachingInterface = new CachingPWMInterface();
-        CarController carController = new CarController(cachingInterface);
+        CarControllerInterface carController = new ThreadBasedCarController(cachingInterface);
         Globals.setController(carController);
         FrequencyTestApi frequencyTestApi = new FrequencyTestApi();
         frequencyTestApi.testSteering(5);
@@ -35,7 +36,7 @@ public class FrequencyTestApiTest {
     @Test
     public void speedTest() {
         CachingPWMInterface cachingInterface = new CachingPWMInterface();
-        CarController carController = new CarController(cachingInterface);
+        CarControllerInterface carController = new ThreadBasedCarController(cachingInterface);
         Globals.setController(carController);
         FrequencyTestApi frequencyTestApi = new FrequencyTestApi();
         frequencyTestApi.testSpeed(5);

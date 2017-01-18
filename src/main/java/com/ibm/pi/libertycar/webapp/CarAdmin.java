@@ -11,7 +11,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import com.ibm.pi.libertycar.control.CarController;
+import com.ibm.pi.libertycar.config.Globals;
+import com.ibm.pi.libertycar.control.threaded.ThreadBasedCarController;
 
 @WebServlet("/admin")
 public class CarAdmin extends HttpServlet {
@@ -23,7 +24,7 @@ public class CarAdmin extends HttpServlet {
 	public volatile static ArrayList<String> idsToForward = new ArrayList<String>();
 	private String controllerId="";
 	public static int lengthOfId=-1;
-
+	
 	@Produces(MediaType.APPLICATION_JSON)
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -58,7 +59,7 @@ public class CarAdmin extends HttpServlet {
 		if(maxSpeed!=null&&maxSpeed.length()>0){
 			try{
 				int maxSpd = Integer.parseInt(maxSpeed);
-				CarController.setMaxSpeed(maxSpd);
+				Globals.getController().setMaxSpeed(maxSpd);
 			} catch (NumberFormatException e){
 				//do nothing
 			}
@@ -104,7 +105,7 @@ public class CarAdmin extends HttpServlet {
 			lengthOfId = idLength;
 		}
 
-		int carMaxSpeed= (int)CarController.getMaxSpeed();		
+		int carMaxSpeed= (int)Globals.getController().getMaxSpeed();		
 
 		PrintWriter writer = resp.getWriter();
 		writer.println("<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">");

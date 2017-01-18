@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.ibm.pi.libertycar.control.CarController;
+import com.ibm.pi.libertycar.control.CarControllerInterface;
 
 /**
  * Servlet implementation class Config
@@ -37,10 +37,10 @@ public class CarConfig extends HttpServlet {
 	public static String commandURL = "";
 	public static String carID = "";
 
-	private static CarController carController;
+	private static CarControllerInterface carController;
 
 
-	public static void setControl(CarController control){
+	public static void setControl(CarControllerInterface control){
 		carController = control;
 	}
 

@@ -4,7 +4,8 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import com.ibm.pi.libertycar.control.CarController;
+import com.ibm.pi.libertycar.control.CarControllerInterface;
+import com.ibm.pi.libertycar.control.threaded.ThreadBasedCarController;
 import com.ibm.pi.libertycar.driver.VirtualPWMInterface;
 import com.ibm.pi.libertycar.webapp.CarControlEndpoint;
 
@@ -14,7 +15,7 @@ public class TestSuite {
 
     @Test
     public void test() {
-        CarController carController = new CarController(new VirtualPWMInterface());
+        CarControllerInterface carController = new ThreadBasedCarController(new VirtualPWMInterface());
         CarControlEndpoint cce = new CarControlEndpoint();
         MockWebSocket session = new MockWebSocket();
         cce.onOpen(session, null);

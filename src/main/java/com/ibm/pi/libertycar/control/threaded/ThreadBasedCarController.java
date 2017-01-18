@@ -1,10 +1,11 @@
-package com.ibm.pi.libertycar.control;
+package com.ibm.pi.libertycar.control.threaded;
 
 import java.io.IOException;
 
+import com.ibm.pi.libertycar.control.CarControllerInterface;
 import com.ibm.pi.libertycar.driver.PWMInterface;
 
-public class CarController implements Runnable {
+public class ThreadBasedCarController implements Runnable, CarControllerInterface {
     // comms info
     private volatile int ticksTillStop = 0;
     private final int ticksTimeout = 10;// ticks until dead-man's handle kicks
@@ -71,7 +72,7 @@ public class CarController implements Runnable {
     private static boolean overrideSteering = false;
     private static boolean overrideSpeed = false;
 
-    public CarController(PWMInterface pwmInterface) {
+    public ThreadBasedCarController(PWMInterface pwmInterface) {
         if (steerInc < 1 && steerInc >= 0) {
             steerInc = 1;
         } else if (steerInc < 0 && steerInc > -1) {
@@ -86,13 +87,10 @@ public class CarController implements Runnable {
         // run=true;
     }
 
-    /**
-     * Sets the speed of the car in percent. Negative percent upto -100 is
-     * reverse.
-     * 
-     * @param speed
-     *            between 100 and -100
+    /* (non-Javadoc)
+     * @see com.ibm.pi.libertycar.control.CarControllerInterface#setSpeed(int)
      */
+    @Override
     public void setSpeed(int speed) {
         // if we want to reverse, let them
         if (speed < 0 || !overrideSpeed) {
@@ -108,13 +106,10 @@ public class CarController implements Runnable {
         }
     }
 
-    /**
-     * Sets the steering angle of the wheels at the front of the car. Takes a
-     * percent where 0 to -100 is left and 0 to 100 is right.
-     * 
-     * @param turning
-     *            int between -100 and 100
+    /* (non-Javadoc)
+     * @see com.ibm.pi.libertycar.control.CarControllerInterface#setSteering(int)
      */
+    @Override
     public void setSteering(int turning) {
         if (!overrideSteering) {
             ticksTillStop = ticksTimeout;
@@ -242,9 +237,10 @@ public class CarController implements Runnable {
         }
     }
 
-    /**
-     * Stops the car thread
+    /* (non-Javadoc)
+     * @see com.ibm.pi.libertycar.control.CarControllerInterface#setCarStop()
      */
+    @Override
     public void setCarStop() {
         run = false;
         try {
@@ -257,9 +253,10 @@ public class CarController implements Runnable {
 
     }
 
-    /**
-     * Starts the car thread if it was stopped
+    /* (non-Javadoc)
+     * @see com.ibm.pi.libertycar.control.CarControllerInterface#setCarStart()
      */
+    @Override
     public void setCarStart() {
         run = true;
         if (!!!controlThread.isAlive() || Thread.interrupted()) {
@@ -272,7 +269,7 @@ public class CarController implements Runnable {
      * 
      * @param newMaxSpeed
      */
-    public static void setMaxSpeed(double newMaxSpeed) {
+    public void setMaxSpeed(double newMaxSpeed) {
         if (newMaxSpeed < 0) {
             newMaxSpeed = 0;
         } else if (newMaxSpeed > 200) {
@@ -292,15 +289,14 @@ public class CarController implements Runnable {
         }
     }
 
-    public static double getMaxSpeed() {
+    public double getMaxSpeed() {
         return (forwardSpeedInc / defaultForwardSpeedInc) * forwardIncDivision;
     }
 
-    /**
-     * Sets the max reverse speed for the car (between 0 and 200%)
-     * 
-     * @param maxSpeed
+    /* (non-Javadoc)
+     * @see com.ibm.pi.libertycar.control.CarControllerInterface#setMaxReverseSpeed(int)
      */
+    @Override
     public void setMaxReverseSpeed(int maxRevSpeed) {
         if (maxRevSpeed > 0) {
             maxRevSpeed = 0;
@@ -310,10 +306,18 @@ public class CarController implements Runnable {
         reverseSpeedInc = (defaultReverseSpeedInc / reverseIncDivision) * maxRevSpeed;
     }
 
+    /* (non-Javadoc)
+     * @see com.ibm.pi.libertycar.control.CarControllerInterface#getMaxReverseSpeed()
+     */
+    @Override
     public double getMaxReverseSpeed() {
         return speedRangeMin;
     }
 
+    /* (non-Javadoc)
+     * @see com.ibm.pi.libertycar.control.CarControllerInterface#testSteering(int, int)
+     */
+    @Override
     public void testSteering(int frequency, int time) {
         try {
             pwmInterface.setPWM(steering, frequency, frequency);
@@ -323,6 +327,10 @@ public class CarController implements Runnable {
         }
     }
 
+    /* (non-Javadoc)
+     * @see com.ibm.pi.libertycar.control.CarControllerInterface#testSpeed(int, int)
+     */
+    @Override
     public void testSpeed(int frequency, int time) {
         try {
             pwmInterface.setPWM(motor, frequency, speedRest);
@@ -335,30 +343,58 @@ public class CarController implements Runnable {
         }
     }
 
+    /* (non-Javadoc)
+     * @see com.ibm.pi.libertycar.control.CarControllerInterface#setSpeedNeutral(int)
+     */
+    @Override
     public void setSpeedNeutral(int rest) {
         speedRest = rest;
     }
 
+    /* (non-Javadoc)
+     * @see com.ibm.pi.libertycar.control.CarControllerInterface#setSpeedMin(int)
+     */
+    @Override
     public void setSpeedMin(int newSpeedRangeMin) {
         speedRangeMin = newSpeedRangeMin;
     }
 
+    /* (non-Javadoc)
+     * @see com.ibm.pi.libertycar.control.CarControllerInterface#setSpeedMax(int)
+     */
+    @Override
     public void setSpeedMax(int newSpeedRangeMax) {
         speedRangeMax = newSpeedRangeMax;
     }
 
+    /* (non-Javadoc)
+     * @see com.ibm.pi.libertycar.control.CarControllerInterface#setSteerNeutral(int)
+     */
+    @Override
     public void setSteerNeutral(int newSteerRest) {
         steerRest = newSteerRest;
     }
 
+    /* (non-Javadoc)
+     * @see com.ibm.pi.libertycar.control.CarControllerInterface#setSteerLeft(int)
+     */
+    @Override
     public void setSteerLeft(int newSteerMin) {
         steerMin = newSteerMin;
     }
 
+    /* (non-Javadoc)
+     * @see com.ibm.pi.libertycar.control.CarControllerInterface#setSteerRight(int)
+     */
+    @Override
     public void setSteerRight(int newSteerMax) {
         steerMax = newSteerMax;
     }
 
+    /* (non-Javadoc)
+     * @see com.ibm.pi.libertycar.control.CarControllerInterface#setSteerInc(double)
+     */
+    @Override
     public void setSteerInc(double newSteerInc) {
         steerInc = newSteerInc;
         if (steerInc < 0) {
@@ -368,11 +404,19 @@ public class CarController implements Runnable {
         }
     }
 
+    /* (non-Javadoc)
+     * @see com.ibm.pi.libertycar.control.CarControllerInterface#setForwardSpeedInc(double)
+     */
+    @Override
     public void setForwardSpeedInc(double newForwardSpeedInc) {
         forwardSpeedInc = newForwardSpeedInc;
         defaultForwardSpeedInc = newForwardSpeedInc;
     }
 
+    /* (non-Javadoc)
+     * @see com.ibm.pi.libertycar.control.CarControllerInterface#setReverseSpeedInc(double)
+     */
+    @Override
     public void setReverseSpeedInc(double newReverseSpeedInc) {
         reverseSpeedInc = newReverseSpeedInc;
         defaultReverseSpeedInc = newReverseSpeedInc;

@@ -5,7 +5,8 @@ import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 
 import com.ibm.pi.libertycar.config.Globals;
-import com.ibm.pi.libertycar.control.CarController;
+import com.ibm.pi.libertycar.control.CarControllerInterface;
+import com.ibm.pi.libertycar.control.threaded.ThreadBasedCarController;
 import com.ibm.pi.libertycar.driver.PWMInterface;
 import com.ibm.pi.libertycar.driver.PhysicalPWMInterface;
 import com.ibm.pi.libertycar.driver.VirtualPWMInterface;
@@ -17,7 +18,7 @@ import com.ibm.pi.libertycar.driver.VirtualPWMInterface;
 @WebListener
 public class StateListener implements ServletContextListener {
 
-    private static CarController carControl;
+    private static CarControllerInterface carControl;
 
     /**
      * @see ServletContextListener#contextDestroyed(ServletContextEvent)
@@ -38,7 +39,7 @@ public class StateListener implements ServletContextListener {
                 pwmInterface = new VirtualPWMInterface();
             }
 
-            carControl = new CarController(pwmInterface);
+            carControl = new ThreadBasedCarController(pwmInterface);
         }
 
         CarControlEndpoint.setControl(carControl);

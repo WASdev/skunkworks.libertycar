@@ -15,14 +15,14 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 import com.google.gson.Gson;
-import com.ibm.pi.libertycar.control.CarController;
+import com.ibm.pi.libertycar.control.CarControllerInterface;
 
 @ServerEndpoint("/control")
 public class CarControlEndpoint  {
 	
 	private Logger logger = Logger.getLogger("CarEndpointLogger");
 	
-	private static CarController carControl;
+	private static CarControllerInterface carControl;
 	
 	private String userId;	
 	private Session mySession;
@@ -32,7 +32,7 @@ public class CarControlEndpoint  {
 	
 	private volatile String lastMessageGroup = null;
 
-	public static void setControl(CarController control){
+	public static void setControl(CarControllerInterface control){
 		carControl = control;
 		
 	}
@@ -50,7 +50,6 @@ public class CarControlEndpoint  {
 		String currentMessageGroup = null;
 		try {
 			ControlInstruction userData = parseMessage(message);
-			System.out.println(new Date() + ": Instruction: " + userData);
     		currentMessageGroup = userData.getMsggrp();
 			returnMessage = parseControlsAndReturnMessage(userData);
 		} catch (IOException e) {
@@ -79,7 +78,7 @@ public class CarControlEndpoint  {
 		t.printStackTrace();
 	}
 
-	public CarController getController(){
+	public CarControllerInterface getController(){
 		return carControl;
 	}
 	
