@@ -4,15 +4,19 @@ import com.ibm.pi.libertycar.control.CarControllerInterface;
 
 public class TestController implements CarControllerInterface {
 
-    @Override
+    private int currentSteering = 0;
+	private int currentThrottle = 0;
+	private double steeringInc;
+
+	@Override
     public void setSpeed(int speed) {
-        // TODO Auto-generated method stub
+        currentThrottle = speed;
 
     }
 
     @Override
     public void setSteering(int turning) {
-        // TODO Auto-generated method stub
+        currentSteering = turning;
 
     }
 
@@ -102,7 +106,7 @@ public class TestController implements CarControllerInterface {
 
     @Override
     public void setSteerInc(double newSteerInc) {
-        // TODO Auto-generated method stub
+        this.steeringInc = newSteerInc;
 
     }
 
@@ -117,5 +121,17 @@ public class TestController implements CarControllerInterface {
         // TODO Auto-generated method stub
 
     }
+
+	public CarValues getCurrentValues() {
+		CarValues returnedValues = new CarValues(currentSteering, currentThrottle);
+		currentSteering = 0;
+		currentThrottle = 0;
+		return returnedValues;
+	}
+
+	public double getSteeringIncrement() {
+		return steeringInc;
+		
+	}
 
 }

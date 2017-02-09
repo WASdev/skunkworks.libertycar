@@ -283,14 +283,10 @@ public class ThreadBasedCarController implements Runnable, CarControllerInterfac
         currentMaxSpeed = newMaxSpeed;
 
         forwardSpeedInc = (defaultForwardSpeedInc / forwardIncDivision) * newMaxSpeed;
-        // min detectable reverse is further from rest than min forwards
-        if (newMaxSpeed < 40) {
-            newMaxSpeed = 40;
-        }
     }
 
     public double getMaxSpeed() {
-        return (forwardSpeedInc / defaultForwardSpeedInc) * forwardIncDivision;
+        return currentMaxSpeed;
     }
 
     /* (non-Javadoc)

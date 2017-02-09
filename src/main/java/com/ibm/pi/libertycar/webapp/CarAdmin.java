@@ -12,7 +12,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.ibm.pi.libertycar.config.Globals;
-import com.ibm.pi.libertycar.control.threaded.ThreadBasedCarController;
 
 @WebServlet("/admin")
 public class CarAdmin extends HttpServlet {

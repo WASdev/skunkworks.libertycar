@@ -1,7 +1,6 @@
 package com.ibm.pi.libertycar.webapp;
 
 import java.io.IOException;
-import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -24,12 +23,10 @@ public class CarControlEndpoint  {
 	
 	private static CarControllerInterface carControl;
 	
-	private String userId;	
 	private Session mySession;
 	
-	private volatile int lastTurn = 0;
-	private volatile int lastThrottle = 0;
-	
+	private volatile Long lastTurn = Long.valueOf(0);
+	private volatile Long lastThrottle = Long.valueOf(0);
 	private volatile String lastMessageGroup = null;
 
 	public static void setControl(CarControllerInterface control){
@@ -83,52 +80,46 @@ public class CarControlEndpoint  {
 	}
 	
 	private String parseControlsAndReturnMessage(ControlInstruction userData) {
-
-		int throttle = lastThrottle ;
-		Long recievedThrottle = userData.getThrottle();
-		if (recievedThrottle != null) {
-			throttle = recievedThrottle.intValue();
-			lastThrottle = throttle;
+		if (userData.getThrottle() == null) {
+			userData.setThrottle(lastThrottle);
+		} else {
+			lastThrottle = userData.getThrottle();
 		}
 		
-		int turning = lastTurn;
-		Long recievedTurning = userData.getTurning();
-		if (recievedTurning != null) {
-			turning = recievedTurning.intValue();
-			lastTurn = turning;
+		if (userData.getTurning() == null) {
+			userData.setTurning(lastTurn);
+		} else {
+			lastTurn = userData.getTurning();
 		}
-		String id = CarAdmin.getIdFromIp((String) userData.getId());
-		return parseControlRequest(throttle, turning, id);
+		
+		userData.setId(CarAdmin.getIdFromIp((String) userData.getId()));
+		return parseControlRequest(userData);
 	}
 	
-	private String parseControlRequest(int throttle, int turning, String id){
-		userId = id;
-		if(userId == null){
-			return "Generating ID. Please wait.";
-		}
+	private String parseControlRequest(ControlInstruction instruction) {
 		String controlMessage = "";
 		boolean noIpCheck = CarAdmin.lengthOfId < 0;
-		if(noIpCheck||CarAdmin.controllerIds.contains(userId)){
+		if(noIpCheck||CarAdmin.controllerIds.contains(instruction.getId())){
 
-			if(noIpCheck||CarAdmin.throttleControl.contains(userId)){
-				carControl.setSpeed(throttle);
-				controlMessage = "You are the speed - your ID is "+userId;
+			if(noIpCheck||CarAdmin.throttleControl.contains(instruction.getId())){
+				carControl.setSpeed(instruction.getThrottle().intValue());
+				controlMessage = "You are the speed - your ID is "+instruction.getId();
 			}
 
-			if(noIpCheck||CarAdmin.steeringControl.contains(userId)){
-				carControl.setSteering(turning);
-				controlMessage = "You are the steering - your ID is "+userId;
+			if(noIpCheck||CarAdmin.steeringControl.contains(instruction.getId())){
+				carControl.setSteering(instruction.getTurning().intValue());
+				controlMessage = "You are the steering - your ID is "+instruction.getId();
 			}
 
-			if(noIpCheck||(CarAdmin.throttleControl.contains(userId)&&CarAdmin.steeringControl.contains(userId))){
-				controlMessage = "You are in full control - your ID is "+userId;
+			if(noIpCheck||(CarAdmin.throttleControl.contains(instruction.getId())&&CarAdmin.steeringControl.contains(instruction.getId()))){
+				controlMessage = "You are in full control - your ID is "+instruction.getId();
 			}
 
-		} else if(!CarConfig.getCommandURL().equals("") && CarAdmin.idsToForward.contains(userId)){
+		} else if(!CarConfig.getCommandURL().equals("") && CarAdmin.idsToForward.contains(instruction.getId())){
 			controlMessage = CarConfig.getCommandURL()+"/leaderboard";
-			CarAdmin.idsToForward.remove(userId);
+			CarAdmin.idsToForward.remove(instruction.getId());
 		} else {
-			controlMessage = ("You do not have control. Your ID is "+userId);
+			controlMessage = ("You do not have control. Your ID is "+instruction.getId());
 		}
 		return controlMessage;
 	}

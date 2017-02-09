@@ -19,10 +19,54 @@ apply plugin: 'liberty'
 
 repositories {
   mavenCentral()
+  ivy {
+    url 'http://code.jquery.com'
+    layout 'pattern', {
+      artifact '/[module]-[revision](.[classifier]).[ext]'
+     }
+   }
+  ivy {
+    url 'http://download.dojotoolkit.org'
+    layout 'pattern', {
+      artifact 'release-[revision]/[module](.js.[classifier]).[ext]'
+    }
+  }
 }
+
+
+configurations {
+  adminWebLibs
+  dojoJs
+}
+
+dependencies {
+  adminWebLibs 'jquery:jquery:2.1.1@js'
+  dojoJs 'dojo:dojo:1.7.4@js'
+
+  providedCompile files(fileTree(dir: "${buildDir}/wlp/dev/api/spec", include: '*.jar')) {
+    builtBy 'installLiberty'
+  }
+
+  compile 'com.pi4j:pi4j-core:1.1'
+  compile 'com.pi4j:pi4j-device:1.1'
+  compile 'com.pi4j:pi4j-gpio-extension:1.1'
+  compile('com.pi4j:pi4j-service:1.1') {
+    exclude group: 'org.osgi'
+  }
+  compile 'com.google.code.gson:gson:2.8.0'
+
+  testCompile 'junit:junit:4.12'
+}
+
+
 
 war {
   archiveName = 'LibertyCar.war'
+  into("adminConfig/lib") {
+    from {
+      configurations.adminWebLibs.collect { zipTree(it).matching { include 'META-INF/resources/webjars/jquery/2.1.1/jquery.min.js' }.files}
+    }
+  }
 }
 
 eclipse {
@@ -66,22 +110,6 @@ remotes {
   }
 }
 
-dependencies {
-  providedCompile files(fileTree(dir: "${buildDir}/wlp/dev/api/spec", include: '*.jar')) {
-    builtBy 'installLiberty'
-  }
-
-  compile 'com.pi4j:pi4j-core:1.1'
-  compile 'com.pi4j:pi4j-device:1.1'
-  compile 'com.pi4j:pi4j-gpio-extension:1.1'
-  compile('com.pi4j:pi4j-service:1.1') {
-    exclude group: 'org.osgi'
-  }
-  compile 'com.google.code.gson:gson:2.8.0'
-
-  testCompile 'junit:junit:4.12'
-  
-}
 
 task uploadWar {
   doLast{
@@ -127,17 +155,51 @@ libertyPackage.dependsOn deployAppToAppsDir
 
 task looseConfig(dependsOn : ['copyUsrDir', 'generateWebInfLib', 'libertyStart', 'removeAppFromAppsDir']) {
   doLast {
-    def writer = new FileWriter("${buildDir}/wlp/usr/servers/defaultServer/apps/LibertyCar.war.xml");
+  
+  	def File parent = new File("${buildDir}/wlp/usr/servers/defaultServer/apps");
+  	def File file = new File(parent, "LibertyCar.war.xml");
+
+    parent.mkdirs();
+
+    def writer = new FileWriter(file);
     def looseConfigFile = new MarkupBuilder(writer)
     looseConfigFile.mkp.xmlDeclaration(version:'1.0', encoding: 'UTF-8' )
     looseConfigFile.archive {
       dir(sourceOnDisk: "${webAppDir}", targetInArchive: "/"){}
       dir(sourceOnDisk: "${buildDir}/eclipse-classes/main", targetInArchive: "/WEB-INF/classes"){}
-      dir(sourceOnDisk: "${buildDir}/webLibs", targetInArchive: "/WEB-INF/lib"){}
+
+      (configurations.compile - configurations.providedCompile).each { dir(sourceOnDisk: it, targetInArchive: "/WEB-INF/lib/" + it.name){} }
+      configurations.adminWebLibs.each { dir(sourceOnDisk: it, targetInArchive: "/adminConfig/lib/jquery-2.1.1.min.js"){} }
+      
+      configurations.dojoJs.each { dir(sourceOnDisk: it, targetInArchive: "/remote/dojo-release-1.7.4/dojo/dojo.js"){} }
     }
 
     writer.close();
   }
+}
+
+task writeRemoteUrlFile(dependsOn: 'build') {
+  doLast {
+    def File parent = new File("${buildDir}/remoteFiles");
+    def File file = new File(parent, "server.env");
+
+    parent.mkdirs();
+    def writer = new FileWriter(file);
+    
+    writer.write("foo=bar");
+
+    writer.close();
+  }
+}
+
+task buildRemotePackage(type: Zip, dependsOn: 'writeRemoteUrlFile') {
+  from zipTree("${buildDir}/LibertyCar.zip")
+  into("/wlp/usr/servers/defaultServer") {
+    from file("${buildDir}/remoteFiles/server.env")
+  }
+  archiveName "LibertyCar.zip"
+  destinationDir file("${buildDir}/remoteFiles")
+
 }
 
 task copyUsrDir(type: Copy) {

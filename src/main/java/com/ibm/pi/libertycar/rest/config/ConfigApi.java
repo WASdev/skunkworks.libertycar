@@ -22,7 +22,6 @@ public class ConfigApi {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public FrequencySettings setNewFrequencies(FrequencySettings settings) {
-        settings.setLeftMax(settings.getLeftMax() + 1);
         return settings;
     }
 

@@ -1,0 +1,138 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+    <script src="lib/jquery.min.js" ></script>
+    <style>
+      table {
+        border-collapse: collapse;
+      }
+
+      td, th {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+      }
+
+      tr:nth-child(even) {
+        background-color: #dddddd;
+      }
+    </style>
+    <title>Liberty car admin panel</title>
+  </head>
+  <body>
+      Car max speed: <input type="text" id="maxSpeed" value="50" /><br />
+      User ID length: <input type="text" id="idLen" value="" /><br />
+      <h4>New User</h4>
+      User ID in control: <input type="text" id="newUserId" value="" /><br />
+      Steering: <input type="checkbox" id="newUserSteeringControl" checked="checked" /><br />
+      Throttle: <input type="checkbox" id="newUserThrottleControl" checked="checked" /><br />
+      <input type="submit" value="Add User" id="addUserButton" /><br />
+      
+      <h4>User List</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>User ID</th>
+            <th>Has Steering</th>
+            <th>Has Throttle</th>
+            <th>User removal</th>
+          </tr>
+        </thead>
+        <tbody id="userContainer">
+
+        </tbody>
+      </table>
+    
+    <script>
+      $(document).ready(function(){
+          $.ajax({
+            url: "/LibertyCar/api/admin",
+            type: "GET",
+            contentType: "application/json",
+            success: function(data, status) {
+              $('#maxSpeed').val(data.carMaxSpeed);
+              $('#idLen').val(data.userIdLengthCheck);
+            }
+          });
+
+          function getUsers() {
+              $.ajax({
+                  url: "/LibertyCar/api/admin/users?ts=" + new Date().getTime(),
+                  type: "GET",
+                  contentType: "application/json",
+                  success: function(data, status) {
+                    $('.userRow').remove();
+                    console.log(data);
+                    $.each(data, function(index, user) {
+                      console.log(user);
+                      $('#userContainer')
+                        .append('<tr class="userRow" data-user="'+user.userId+'">\
+                      <td>' + user.userId + '</td>\
+                      <td><input class="steeringControl" '+ (user.steeringControl ? 'checked="checked"' : '') +' type="checkbox"></td>\
+                      <td><input class="throttleControl" '+ (user.throttleControl ? 'checked="checked"' : '') +' type="checkbox"></td>\
+                      <td><input value="Remove User" class="removeUser" type="button" data-user="'+user.userId+'"></td>\
+                    </tr>');
+                    });
+                    
+                  }
+                });
+          }
+
+          getUsers();
+          
+          $('#userContainer').on('click', '.removeUser', function(e){
+              $.ajax({
+                  url: "/LibertyCar/api/admin/users/"+$(this).data('user'),
+                  type: "DELETE",
+                  success: function(data, status) {
+                    setTimeout(getUsers,500);
+                  }
+                })
+          })
+
+          $('#userContainer').on('change', '.userRow', function(e){
+            var steeringCont = $(this).find('.steeringControl').get(0);
+            var throttleCont = $(this).find('.throttleControl').get(0);
+            $('#userContainer').find('input').prop('disabled', true);
+            console.log($(this).data('user'));
+            var userToUpdate = {
+                "userId": $(this).data('user'),
+                "steeringControl" : steeringCont.checked,
+                "throttleControl" : throttleCont.checked
+              };
+            console.log(userToUpdate);
+            $.ajax({
+                url: "/LibertyCar/api/admin/users",
+                contentType: "application/json",
+                type: "PUT",
+                data: JSON.stringify(userToUpdate),
+                success: function(data, status) {
+                  setTimeout(getUsers,500);
+                }
+              })
+          })
+          
+          
+          $('#addUserButton').click(function() {
+              var newUser = {
+                "userId": $('#newUserId').val(),
+                "steeringControl" : $('#newUserSteeringControl').prop('checked'),
+                "throttleControl" : $('#newUserThrottleControl').prop('checked')
+              };
+              console.log(newUser);
+              $.ajax({
+                url: "/LibertyCar/api/admin/users",
+                contentType: "application/json",
+                type: "PUT",
+                data: JSON.stringify(newUser),
+                success: function(data, status) {
+                  setTimeout(getUsers,500);
+                }
+              })
+            });
+        
+      }); 
+    </script>
+  </body>
+</html>

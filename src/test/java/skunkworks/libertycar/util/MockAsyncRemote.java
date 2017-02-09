@@ -92,7 +92,9 @@ public class MockAsyncRemote implements Async {
 	}
 	
 	public String getLastMessage() {
-		return lastMessage;
+		String returnedMessage = lastMessage;
+		lastMessage = null;
+		return returnedMessage;
 	}
 
 }

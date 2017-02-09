@@ -12,7 +12,7 @@
 
   <httpEndpoint httpPort="9080" httpsPort="9443" id="defaultHttpEndpoint" host="*"/>
 
-  <!-- <applicationMonitor updateTrigger="mbean"/>-->
+  <applicationMonitor updateTrigger="polled"/>
 
   <webApplication id="LibertyCar" location="LibertyCar.war" name="LibertyCar">
     <classloader apiTypeVisibility="spec,ibm-api,api,third-party"></classloader>

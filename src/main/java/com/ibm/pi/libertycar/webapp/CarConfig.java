@@ -19,20 +19,9 @@ import com.ibm.pi.libertycar.control.CarControllerInterface;
 public class CarConfig extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
-	//steering
-	private int leftMax = 430;
-	private int steerNeutral = 350;
-	private int rightMax = 280;
-	private double steeringIncrement = -1;
-	private int steeringTest = 0;
-
-	//speed
-	private int maxForward = 635;
-	private int speedNeutral = 405;
-	private int maxReverse = 188;
-//	private double speedIncrement = 2.3;
+	CarConfigSettings configSettings = new CarConfigSettings();
 	private int speedTest = 0;
-
+	private int steeringTest = 0;
 	//command app
 	public static String commandURL = "";
 	public static String carID = "";
@@ -48,8 +37,6 @@ public class CarConfig extends HttpServlet {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		//analyse received data (if any)
-
 		//see if test data received
 		String steeringTestValue = req.getParameter("steeringTest");
 		String speedTestValue = req.getParameter("speedTest");
@@ -63,67 +50,87 @@ public class CarConfig extends HttpServlet {
 			} else if(speedTestValue!=null && !speedTestValue.equals("0")){
 				carController.testSpeed(Integer.parseInt(speedTestValue), testTimeout);
 			}
-
 		} else {
-
-			//new command app URL
-			String commandURLValue = req.getParameter("commandURL");
-			if(commandURLValue!=null){
-				commandURL = commandURLValue;
-				System.out.println("command url set to: "+commandURL);
-			}
-			//car ID
-			String carIDValue = req.getParameter("carID");
-			if(carIDValue!=null){
-				carID = carIDValue;
-				System.out.println("car id set to: "+carID);
-			}
-
-			//steering
-			String leftMaxValue = req.getParameter("leftMax");
-			String steerNeutralValue = req.getParameter("steerNeutral");
-			String rightMaxValue = req.getParameter("rightMax");
-
-			if(leftMaxValue!=null){
-				leftMax = Integer.parseInt(leftMaxValue);
-			}
-
-			if (steerNeutralValue!=null) {
-				steerNeutral = Integer.parseInt(steerNeutralValue);
-			}
-
-			if(rightMaxValue!=null){
-				rightMax = Integer.parseInt(rightMaxValue);
-			}
-
-			//speed
-			String maxForwardValue = req.getParameter("maxForward");
-			String speedNeutralValue = req.getParameter("speedNeutral");
-			String maxReverseValue = req.getParameter("maxReverse");
-
-			if(maxForwardValue!=null){
-				maxForward = Integer.parseInt(maxForwardValue);
-			}
-
-			if(speedNeutralValue!=null){
-				speedNeutral = Integer.parseInt(speedNeutralValue);
-			}
-
-			if(maxReverseValue!=null){
-				maxReverse = Integer.parseInt(maxReverseValue);
-			}
+			configSettings = updateConfigSettingsFromRequest(req, configSettings);
 		}
 
+		configSettings = updateConfigSettings(configSettings);
+		
+		updateController(carController, configSettings);
+
+		//show content
+		PrintWriter writer = resp.getWriter();
+		generateHtmlPage(writer, configSettings);
+	}
+
+	
+	
+	private CarConfigSettings updateConfigSettings(CarConfigSettings configSettings) {
 		//calc increments
-		steeringIncrement = (rightMax-leftMax)/100;
+		configSettings.setSteeringIncrement((configSettings.getRightMax()-configSettings.getLeftMax())/100);
 //		speedIncrement = (maxForward-maxReverse)/200; //200% is actually max speed (but we hide that as it is normally too high)
 
+		
+		return configSettings;
+	}
+
+	private CarConfigSettings updateConfigSettingsFromRequest(HttpServletRequest req, CarConfigSettings configSettings) {
+		//new command app URL
+		String commandURLValue = req.getParameter("commandURL");
+		if(commandURLValue!=null){
+			commandURL = commandURLValue;
+			System.out.println("command url set to: "+commandURL);
+		}
+		//car ID
+		String carIDValue = req.getParameter("carID");
+		if(carIDValue!=null){
+			carID = carIDValue;
+			System.out.println("car id set to: "+carID);
+		}
+
+		//steering
+		String leftMaxValue = req.getParameter("leftMax");
+		String steerNeutralValue = req.getParameter("steerNeutral");
+		String rightMaxValue = req.getParameter("rightMax");
+
+		if(leftMaxValue!=null){
+			configSettings.setLeftMax(Integer.parseInt(leftMaxValue));
+		}
+
+		if (steerNeutralValue!=null) {
+			configSettings.setSteerNeutral(Integer.parseInt(steerNeutralValue));
+		}
+
+		if(rightMaxValue!=null){
+			configSettings.setRightMax(Integer.parseInt(rightMaxValue));
+		}
+
+		//speed
+		String maxForwardValue = req.getParameter("maxForward");
+		String speedNeutralValue = req.getParameter("speedNeutral");
+		String maxReverseValue = req.getParameter("maxReverse");
+
+		if(maxForwardValue!=null){
+			configSettings.setMaxForward(Integer.parseInt(maxForwardValue));
+		}
+
+		if(speedNeutralValue!=null){
+			configSettings.setSpeedNeutral(Integer.parseInt(speedNeutralValue));
+		}
+
+		if(maxReverseValue!=null){
+			configSettings.setMaxReverse(Integer.parseInt(maxReverseValue));
+		}
+		return configSettings;
+	}
+
+	private void updateController(CarControllerInterface carController2, CarConfigSettings configSettings2) {
 		//set values in car controller
 		//steering
 //		carController.setSteerLeft(leftMax);
 //		carController.setSteerNeutral(steerNeutral);
 //		carController.setSteerRight(rightMax);
-		carController.setSteerInc(steeringIncrement);
+		carController.setSteerInc(configSettings.getSteeringIncrement());
 
 		//speed
 //		carController.setSpeedMax(maxForward);
@@ -131,9 +138,10 @@ public class CarConfig extends HttpServlet {
 //		carController.setSpeedMin(maxReverse);
 //		carController.setForwardSpeedInc(speedIncrement);
 //		carController.setReverseSpeedInc(speedIncrement);
+		
+	}
 
-		//show content
-		PrintWriter writer = resp.getWriter();
+	public void generateHtmlPage(PrintWriter writer, CarConfigSettings configSettings) {
 		writer.println("<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">");
 		writer.println("<html>");
 		writer.println("<head>");
@@ -148,14 +156,14 @@ public class CarConfig extends HttpServlet {
 		writer.println("<form  action=\"./config\">");
 
 		//steering settings
-		writer.println("Max left frequency: <input type=\"text\" name=\"leftMax\" value=\""+leftMax+"\"><br>");
-		writer.println("Straight ahead frequency: <input type=\"text\" name=\"steerNeutral\" value=\""+steerNeutral+"\"><br>");
-		writer.println("Max right frequency: <input type=\"text\" name=\"rightMax\" value=\""+rightMax+"\"><br>");
+		writer.println("Max left frequency: <input type=\"text\" name=\"leftMax\" value=\""+configSettings.getLeftMax()+"\"><br>");
+		writer.println("Straight ahead frequency: <input type=\"text\" name=\"steerNeutral\" value=\""+configSettings.getSteerNeutral()+"\"><br>");
+		writer.println("Max right frequency: <input type=\"text\" name=\"rightMax\" value=\""+configSettings.getRightMax()+"\"><br>");
 
 		//speed settings
-		writer.println("Car max forwards frequency: <input type=\"text\" name=\"maxForward\" value=\""+maxForward+"\"><br>");
-		writer.println("Car neutral frequency: <input type=\"text\" name=\"speedNeutral\" value=\""+speedNeutral+"\"><br>");
-		writer.println("Max reverse frequency: <input type=\"text\" name=\"maxReverse\" value=\""+maxReverse+"\"><br>");
+		writer.println("Car max forwards frequency: <input type=\"text\" name=\"maxForward\" value=\""+configSettings.getMaxForward()+"\"><br>");
+		writer.println("Car neutral frequency: <input type=\"text\" name=\"speedNeutral\" value=\""+configSettings.getSpeedNeutral()+"\"><br>");
+		writer.println("Max reverse frequency: <input type=\"text\" name=\"maxReverse\" value=\""+configSettings.getMaxReverse()+"\"><br>");
 
 		writer.println("<br/>");
 		//default settings picker
@@ -209,9 +217,13 @@ public class CarConfig extends HttpServlet {
 		writer.println("</form>");
 
 		writer.println("</body>");
-		writer.println("</html>");	
+		writer.println("</html>");		
+		
+		
 	}
-
+	
+	
+	
 	/**
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */
