@@ -1,0 +1,34 @@
+apply plugin: 'org.hidetake.ssh'
+
+
+remotes {
+  carPiHost {
+    host = '192.168.168.4'
+    user = 'pi'
+    password = 'raspberry'
+    knownHosts = allowAnyHosts
+  }
+}
+
+
+task uploadWar {
+  doLast{
+    ssh.run {
+      session(remotes.carPiHost) {
+        put from: "${war.archivePath}", into: '/home/pi/wlp/usr/servers/defaultServer/apps/LibertyCar.war'
+      }
+    }
+  }
+}
+
+task uploadPackage {
+  doLast{
+    ssh.run {
+      session(remotes.carPiHost) {
+        put from: "${buildDir}/LibertyCar.zip", into: '/home/pi/LibertyCar.zip'
+        execute "rm -rf /home/pi/wlp"
+        execute "unzip /home/pi/LibertyCar.zip"
+      }
+    }
+  }
+}

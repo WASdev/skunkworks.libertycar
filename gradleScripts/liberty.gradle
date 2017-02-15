@@ -1,0 +1,28 @@
+apply plugin: 'liberty'
+
+liberty {
+  install {
+    baseDir = "${buildDir}/wlp-install"
+    version = '16.0.0_04'
+  }
+  serverName = 'defaultServer'
+  outputDir = "${buildDir}/wlp-output"
+  userDir = "${buildDir}/wlp-usr"
+
+  packageLiberty {
+    archive = "${buildDir}/LibertyCar.zip"
+    include = "minify"
+  }
+}
+tasks.compileJava.dependsOn installLiberty
+tasks.eclipseClasspath.dependsOn installLiberty
+build.dependsOn libertyPackage
+libertyStart.dependsOn installLiberty
+libertyPackage.dependsOn libertyStop
+
+dependencies {
+  providedCompile files(fileTree(dir: "${liberty.install.baseDir}/wlp/dev/api/spec", include: '*.jar')) {
+    builtBy 'installLiberty'
+  }
+}
+

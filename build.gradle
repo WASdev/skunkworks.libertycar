@@ -10,12 +10,11 @@ buildscript {
   }
 }
 
-import groovy.xml.*
+apply from: 'gradleScripts/deploy.gradle'
 
-apply plugin: 'org.hidetake.ssh'
-apply plugin: 'eclipse'
 apply plugin: 'war'
-apply plugin: 'liberty'
+apply from: 'gradleScripts/eclipse.gradle'
+apply from: 'gradleScripts/liberty.gradle'
 
 repositories {
   mavenCentral()
@@ -28,11 +27,10 @@ repositories {
   ivy {
     url 'http://download.dojotoolkit.org'
     layout 'pattern', {
-      artifact 'release-[revision]/[module](.js.[classifier]).[ext]'
+      artifact 'release-[revision]/[module]-release-[revision].[ext]'
     }
   }
 }
-
 
 configurations {
   adminWebLibs
@@ -41,11 +39,7 @@ configurations {
 
 dependencies {
   adminWebLibs 'jquery:jquery:2.1.1@js'
-  dojoJs 'dojo:dojo:1.7.4@js'
-
-  providedCompile files(fileTree(dir: "${buildDir}/wlp/dev/api/spec", include: '*.jar')) {
-    builtBy 'installLiberty'
-  }
+  dojoJs 'dojo:dojo:1.7.4@zip'
 
   compile 'com.pi4j:pi4j-core:1.1'
   compile 'com.pi4j:pi4j-device:1.1'
@@ -58,152 +52,34 @@ dependencies {
   testCompile 'junit:junit:4.12'
 }
 
-
-
 war {
   archiveName = 'LibertyCar.war'
   into("adminConfig/lib") {
     from {
-      configurations.adminWebLibs.collect { zipTree(it).matching { include 'META-INF/resources/webjars/jquery/2.1.1/jquery.min.js' }.files}
+      configurations.adminWebLibs
     }
   }
-}
-
-eclipse {
-  classpath {
-    defaultOutputDir = file("${buildDir}/eclipse-classes/default")
-    file {
-      beforeMerged { classpath -> 
-        classpath.entries.clear()
-      }
-      whenMerged {  cp -> 
-        cp.entries.findAll { it.kind == "src" && it.path.startsWith("src/main/") }*.output = "build/eclipse-classes/main" 
-        cp.entries.findAll { it.kind == "src" && it.path.startsWith("src/test/") }*.output = "build/eclipse-classes/test" 
-      }
-    }
-  }
-}
-    
-liberty {
-  installDir = "${buildDir}/wlp"
-  serverName = 'defaultServer'
-  outputDir = "${buildDir}/wlp-output"
-  install {
-    version = '16.0.0_04'
-  }
-
-  packageLiberty {
-    archive = "${buildDir}/LibertyCar.zip"
-    include = "minify"
-  }
-}
-tasks.compileJava.dependsOn installLiberty
-tasks.eclipseClasspath.dependsOn installLiberty
-build.dependsOn libertyPackage
-
-remotes {
-  carPiHost {
-    host = '192.168.168.4'
-    user = 'pi'
-    password = 'raspberry'
-    knownHosts = allowAnyHosts
-  }
-}
-
-
-task uploadWar {
-  doLast{
-    ssh.run {
-      session(remotes.carPiHost) {
-        put from: "${war.archivePath}", into: '/home/pi/wlp/usr/servers/defaultServer/apps/LibertyCar.war'
-      }
-    }
-  }
-}
-
-task uploadPackage {
-  doLast{
-    ssh.run {
-      session(remotes.carPiHost) {
-        put from: "${buildDir}/LibertyCar.zip", into: '/home/pi/LibertyCar.zip'
-        execute "rm -rf /home/pi/wlp"
-        execute "unzip /home/pi/LibertyCar.zip"
-      }
+  into("remote") {
+    from (zipTree(configurations.dojoJs.singleFile)) {
+      include '**/dojo/**'
+      includeEmptyDirs false
     }
   }
 }
 
 task deployAppToAppsDir(type: Copy, dependsOn: ['assemble', 'copyUsrDir', 'removeLooseConfig']) {
   from "${war.archivePath}"
-  into "${buildDir}/wlp/usr/servers/defaultServer/apps"
+  into "${liberty.userDir}/servers/${liberty.serverName}/apps"
 }
-
-task removeAppFromAppsDir(type: Delete) {
-  delete "${war.archivePath}"
-}
-
-task removeLooseConfig(type: Delete) {
-  delete "${buildDir}/wlp/usr/servers/defaultServer/apps/LibertyCar.war.xml"
-}
-
-task generateWebInfLib(type: Copy) {
-  into "${buildDir}/webLibs"
-  from configurations.compile - configurations.providedCompile
-}
-
 libertyPackage.dependsOn deployAppToAppsDir
 
-task looseConfig(dependsOn : ['copyUsrDir', 'generateWebInfLib', 'libertyStart', 'removeAppFromAppsDir']) {
-  doLast {
-  
-  	def File parent = new File("${buildDir}/wlp/usr/servers/defaultServer/apps");
-  	def File file = new File(parent, "LibertyCar.war.xml");
-
-    parent.mkdirs();
-
-    def writer = new FileWriter(file);
-    def looseConfigFile = new MarkupBuilder(writer)
-    looseConfigFile.mkp.xmlDeclaration(version:'1.0', encoding: 'UTF-8' )
-    looseConfigFile.archive {
-      dir(sourceOnDisk: "${webAppDir}", targetInArchive: "/"){}
-      dir(sourceOnDisk: "${buildDir}/eclipse-classes/main", targetInArchive: "/WEB-INF/classes"){}
-
-      (configurations.compile - configurations.providedCompile).each { dir(sourceOnDisk: it, targetInArchive: "/WEB-INF/lib/" + it.name){} }
-      configurations.adminWebLibs.each { dir(sourceOnDisk: it, targetInArchive: "/adminConfig/lib/jquery-2.1.1.min.js"){} }
-      
-      configurations.dojoJs.each { dir(sourceOnDisk: it, targetInArchive: "/remote/dojo-release-1.7.4/dojo/dojo.js"){} }
-    }
-
-    writer.close();
-  }
-}
-
-task writeRemoteUrlFile(dependsOn: 'build') {
-  doLast {
-    def File parent = new File("${buildDir}/remoteFiles");
-    def File file = new File(parent, "server.env");
-
-    parent.mkdirs();
-    def writer = new FileWriter(file);
-    
-    writer.write("foo=bar");
-
-    writer.close();
-  }
-}
-
-task buildRemotePackage(type: Zip, dependsOn: 'writeRemoteUrlFile') {
-  from zipTree("${buildDir}/LibertyCar.zip")
-  into("/wlp/usr/servers/defaultServer") {
-    from file("${buildDir}/remoteFiles/server.env")
-  }
-  archiveName "LibertyCar.zip"
-  destinationDir file("${buildDir}/remoteFiles")
-
+task removeAppFromAppsDir(type: Delete) {
+  delete "${liberty.userDir}/servers/${liberty.serverName}/apps/${war.archiveName}"
 }
 
 task copyUsrDir(type: Copy) {
   from 'src/main/wlp/usr'
-  into "${buildDir}/wlp/usr"
+  into liberty.userDir
 }
 
+apply from: 'gradleScripts/looseConfig.gradle'

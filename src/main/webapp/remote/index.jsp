@@ -1,4 +1,4 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE html> 
 <html>
 <head>
 <title>Driving Liberty Car</title>
@@ -33,7 +33,7 @@ var myId = "<%=request.getRemoteAddr()%>";
 		"dojo/_base/xhr"
 	], function(array, dom, lang, on, has, ready){});
 
-	var webSocket = new WebSocket('ws://caplonsgprd-3.integration.ibmcloud.com:15159/LibertyCar/control');
+	var webSocket = new WebSocket('ws://192.168.168.2:9080/LibertyCar/control');
 	init();
 
     function init() {
@@ -57,7 +57,7 @@ var myId = "<%=request.getRemoteAddr()%>";
     }
     
     function redirectToLegacy(){
-    	window.location.href = 'http://'+window.document.location.host + '/LibertyCar/remote/legacy.jsp';
+    	//window.location.href = 'http://'+window.document.location.host + '/LibertyCar/remote/legacy.jsp';
     }
     
     function resetSteering(){

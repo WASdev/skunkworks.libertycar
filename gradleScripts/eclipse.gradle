@@ -1,0 +1,16 @@
+apply plugin: 'eclipse'
+
+eclipse {
+  classpath {
+    defaultOutputDir = file("${buildDir}/eclipse-classes/default")
+    file {
+      beforeMerged { classpath -> 
+        classpath.entries.clear()
+      }
+      whenMerged {  cp -> 
+        cp.entries.findAll { it.kind == "src" && it.path.startsWith("src/main/") }*.output = "build/eclipse-classes/main" 
+        cp.entries.findAll { it.kind == "src" && it.path.startsWith("src/test/") }*.output = "build/eclipse-classes/test" 
+      }
+    }
+  }
+}

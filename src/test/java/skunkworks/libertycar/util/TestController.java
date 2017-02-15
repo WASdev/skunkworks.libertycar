@@ -7,7 +7,29 @@ public class TestController implements CarControllerInterface {
     private int currentSteering = 0;
 	private int currentThrottle = 0;
 	private double steeringInc;
+  private int lastSteeringTestTime;
+  private int lastSteeringTestFrequency;
+  private int steeringTestCount = 0;
 
+  
+  
+  private int lastSpeedTestTime;
+  private int lastSpeedTestFrequency;
+  private int speedTestCount = 0;
+
+
+  
+  public int getLastSteeringTestTime() {
+    return lastSteeringTestTime;
+  }
+
+  public int getLastSteeringTestFrequency() {
+    return lastSteeringTestFrequency;
+  }
+
+  
+  
+  
 	@Override
     public void setSpeed(int speed) {
         currentThrottle = speed;
@@ -58,13 +80,17 @@ public class TestController implements CarControllerInterface {
 
     @Override
     public void testSteering(int frequency, int time) {
-        // TODO Auto-generated method stub
+        lastSteeringTestFrequency = frequency;
+        lastSteeringTestTime = time;
+        steeringTestCount++;
 
     }
 
     @Override
     public void testSpeed(int frequency, int time) {
-        // TODO Auto-generated method stub
+      lastSpeedTestFrequency = frequency;
+      lastSpeedTestTime = time;
+      speedTestCount++;
 
     }
 
@@ -133,5 +159,21 @@ public class TestController implements CarControllerInterface {
 		return steeringInc;
 		
 	}
+
+  public int getSteeringTestCount() {
+    return steeringTestCount ;
+  }
+
+  public int getLastSpeedTestFrequency() {
+    return lastSpeedTestFrequency;
+  }
+
+  public int getSpeedTestCount() {
+    return speedTestCount;
+  }
+
+  public int getLastSpeedTestTime() {
+    return lastSpeedTestTime;
+  }
 
 }

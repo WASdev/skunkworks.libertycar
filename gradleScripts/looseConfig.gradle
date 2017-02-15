@@ -1,0 +1,37 @@
+import groovy.xml.*
+
+task copyDojo(type: Copy) {
+  from (zipTree(configurations.dojoJs.singleFile)) {
+    include '**/dojo/**'
+    includeEmptyDirs false
+  }
+  into "${buildDir}/dojoJs"
+}
+
+task looseConfig(dependsOn : ['copyDojo', 'copyUsrDir', 'libertyStart', 'removeAppFromAppsDir']) {
+  doLast {
+    def File parent = new File("${liberty.userDir}/servers/${liberty.serverName}/apps");
+    def File file = new File(parent, "LibertyCar.war.xml");
+
+    parent.mkdirs();
+
+    def writer = new FileWriter(file);
+    def looseConfigFile = new MarkupBuilder(writer)
+    looseConfigFile.mkp.xmlDeclaration(version:'1.0', encoding: 'UTF-8' )
+    looseConfigFile.archive {
+      dir(sourceOnDisk: "${webAppDir}", targetInArchive: "/"){}
+      dir(sourceOnDisk: "${buildDir}/eclipse-classes/main", targetInArchive: "/WEB-INF/classes"){}
+
+      (configurations.compile - configurations.providedCompile).each { dir(sourceOnDisk: it, targetInArchive: "/WEB-INF/lib/" + it.name){} }
+      configurations.adminWebLibs.each { dir(sourceOnDisk: it, targetInArchive: "/adminConfig/lib/jquery.min.js"){} }
+      
+      dir(sourceOnDisk: "${buildDir}/dojoJs", targetInArchive: "/remote/"){}
+    }
+
+    writer.close();
+  }
+}
+
+task removeLooseConfig(type: Delete) {
+  delete "${liberty.userDir}/servers/${liberty.serverName}/apps/LibertyCar.war.xml"
+}

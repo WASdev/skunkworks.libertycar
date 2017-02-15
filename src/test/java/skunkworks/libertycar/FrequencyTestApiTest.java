@@ -1,52 +1,40 @@
 package skunkworks.libertycar;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.util.Deque;
 
 import org.junit.Test;
 
 import com.ibm.pi.libertycar.config.Globals;
-import com.ibm.pi.libertycar.control.CarControllerInterface;
-import com.ibm.pi.libertycar.control.FrequencyInstruction;
-import com.ibm.pi.libertycar.control.threaded.ThreadBasedCarController;
 import com.ibm.pi.libertycar.rest.config.FrequencyTestApi;
 
-import skunkworks.libertycar.util.CachingPWMInterface;
+import skunkworks.libertycar.util.TestController;
 
 public class FrequencyTestApiTest {
     
     @Test
     public void steeringTest() {
-        CachingPWMInterface cachingInterface = new CachingPWMInterface();
-        CarControllerInterface carController = new ThreadBasedCarController(cachingInterface);
+        TestController carController = new TestController();
         Globals.setController(carController);
         FrequencyTestApi frequencyTestApi = new FrequencyTestApi();
-        frequencyTestApi.testSteering(5);
-        Deque<FrequencyInstruction> cache = cachingInterface.getInstructionCache();
-        FrequencyInstruction lastSteeringInstruction = cache.remove();
-        while (lastSteeringInstruction != null && lastSteeringInstruction.getChannel() != 14) {
-            lastSteeringInstruction = cache.remove();
-        }
-        assertNotNull("There should be at least one instruction that affects the steering");
-        assertEquals("The final instruction should have updated the steering", new FrequencyInstruction(14, 5, 5), lastSteeringInstruction);
+        frequencyTestApi.testSteering(4);
+        
+        assertEquals("The steering should have been set once", 4, carController.getLastSteeringTestFrequency());
+        assertEquals("The steering should have been set once", 5, carController.getLastSteeringTestTime());
+        assertEquals("The test should be called once only", 1, carController.getSteeringTestCount());
     }
 
     @Test
     public void speedTest() {
-        CachingPWMInterface cachingInterface = new CachingPWMInterface();
-        CarControllerInterface carController = new ThreadBasedCarController(cachingInterface);
-        Globals.setController(carController);
-        FrequencyTestApi frequencyTestApi = new FrequencyTestApi();
-        frequencyTestApi.testSpeed(5);
-        Deque<FrequencyInstruction> cache = cachingInterface.getInstructionCache();
-        FrequencyInstruction lastSpeedInstruction = cache.remove();
-        while (lastSpeedInstruction != null && lastSpeedInstruction.getChannel() != 15) {
-            lastSpeedInstruction = cache.remove();
-        }
-        assertNotNull("There should be at least one instruction that affects the steering");
-        assertEquals("The final instruction should have updated the steering", new FrequencyInstruction(15, 5, 405), lastSpeedInstruction);
+      
+      TestController carController = new TestController();
+      Globals.setController(carController);
+      FrequencyTestApi frequencyTestApi = new FrequencyTestApi();
+      frequencyTestApi.testSpeed(4);
+      
+      assertEquals("The speed test frequency should have been set", 4, carController.getLastSpeedTestFrequency());
+      assertEquals("The speed test time should have been set", 5, carController.getLastSpeedTestTime());
+      assertEquals("The test should be called once only", 1, carController.getSpeedTestCount());
+   
     }
 
 }
