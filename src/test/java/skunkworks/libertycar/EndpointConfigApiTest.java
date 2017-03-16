@@ -1,6 +1,8 @@
 package skunkworks.libertycar;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+
+import java.io.IOException;
 
 import org.junit.Test;
 
@@ -12,7 +14,7 @@ import skunkworks.libertycar.util.MockRequest;
 public class EndpointConfigApiTest {
 
   @Test
-  public void test() {
+  public void testNonValidUser() throws IOException {
     EndpointConfigApi eca = new EndpointConfigApi();
     MockRequest request = new MockRequest("http://testHost:333/SOmething/somehwere");
     EndpointConfig endpointConfig = eca.getConfig(request);

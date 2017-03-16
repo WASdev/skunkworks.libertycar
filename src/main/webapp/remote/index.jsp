@@ -19,8 +19,6 @@
 
       var angleBeforeForward = 25;
 
-      var myId = "<%=request.getRemoteAddr()%>";
-
       require([
         "dojo/_base/array",
         "dojo/dom",
@@ -42,6 +40,7 @@
           url: "../api/endpointconfig",
           handleAs: "json",
           load: function(result) {
+            getUserId(xhr, result.userRestUrl);
             getWebSocket(result.webSocketUrl);
             if (window.DeviceOrientationEvent) {
               // Listen for the deviceorientation event and handle the raw data
@@ -68,6 +67,27 @@
         });
       }
 
+      function getUserId(xhr, userRestUrl) {
+        var authToken = "fake:user";
+        if (localStorage.endUser) {
+          authToken = localStorage.endUser;
+        }
+        console.log("User is " + authToken);
+        xhr.post({
+          url: userRestUrl,
+          handleAs: "json",
+          headers: { "Content-Type": "application/json" },
+          postData: "{ \"auth\": \"" + authToken + "\"}",
+          load: function(result) {
+            localStorage.endUser = result.userName + ":" + result.password;
+          },
+          error: function(errorMessage) {
+            setErrorStatus();
+            console.log("Error validating userId: " + errorMessage);
+          }
+        });
+      }
+      
       function setErrorStatus() {
         document.getElementById("status").innerHTML = "COMMUNICATION ERROR";
       }
@@ -148,7 +168,7 @@
         document.getElementById("message").innerHTML = "Steering: "+ steering + " Speed: "+accelerationAsInt;
 
         if (webSocketWrapper.open) {
-          webSocketWrapper.socket.send(dojo.toJson({throttle:accelerationAsInt,turning:steering,id:myId}));
+          webSocketWrapper.socket.send(dojo.toJson({throttle:accelerationAsInt,turning:steering,id:localStorage.endUser}));
         } 
       }
 

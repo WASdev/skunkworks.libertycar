@@ -15,6 +15,8 @@ import javax.websocket.server.ServerEndpoint;
 
 import com.google.gson.Gson;
 import com.ibm.pi.libertycar.control.CarControllerInterface;
+import com.ibm.pi.libertycar.rest.admin.User;
+import com.ibm.pi.libertycar.security.UserId;
 
 @ServerEndpoint("/control")
 public class CarControlEndpoint  {
@@ -92,7 +94,9 @@ public class CarControlEndpoint  {
 			lastTurn = userData.getTurning();
 		}
 		
-		userData.setId(CarAdmin.getIdFromIp((String) userData.getId()));
+//		userData.setId(CarAdmin.getIdFromIp((String) userData.getId()));
+		UserId user = new UserId(userData.getId());
+		userData.setId(user.getUserName());
 		return parseControlRequest(userData);
 	}
 	

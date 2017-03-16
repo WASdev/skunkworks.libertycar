@@ -38,13 +38,14 @@ public class UserId {
     return true;
   }
 
-  private final String userId;
-  private final String password;
+  private String userId;
+  private String password;
   
-  public UserId(String userId, String password) {
-    this.userId = userId;
-    this.password = password;
+  public UserId(String authToken) {
+    setAuth(authToken);
   }
+  
+  public UserId() {}
   
   public String getUserName() {
     return userId;
@@ -52,6 +53,15 @@ public class UserId {
 
   public String getPassword() {
     return password;
+  }
+  
+  public void setAuth(String authToken) {
+    String[] parts = authToken.split(":", 2);
+    this.userId = parts[0];
+    if (parts.length > 1) {
+      this.password = parts[1];
+    }
+    
   }
 
 }

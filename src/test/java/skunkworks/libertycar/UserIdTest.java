@@ -9,12 +9,13 @@ import org.junit.Test;
 
 import com.ibm.pi.libertycar.security.UserId;
 import com.ibm.pi.libertycar.security.UserIdManager;
+import com.ibm.pi.libertycar.security.ListBasedUserIdManager;
 
 public class UserIdTest {
 
   @Test
   public void getSingleUser() throws IOException {
-    UserIdManager uim = new UserIdManager();
+    UserIdManager uim = new ListBasedUserIdManager();
     
     UserId user = uim.getNewUser();
     
@@ -30,20 +31,20 @@ public class UserIdTest {
   
   @Test
   public void nullUserIsntValid() throws IOException {
-    UserIdManager uim = new UserIdManager();
+    UserIdManager uim = new ListBasedUserIdManager();
     assertFalse("Null should not be accepted as a userId", uim.isUserValid(null));
   }
   
   @Test
   public void unknownUserIsntValid() throws IOException {
-    UserIdManager uim = new UserIdManager();
-    UserId newUser =  new UserId(UUID.randomUUID().toString(), UUID.randomUUID().toString());
+    UserIdManager uim = new ListBasedUserIdManager();
+    UserId newUser =  new UserId(UUID.randomUUID().toString() + ":"+ UUID.randomUUID().toString());
     assertFalse("An unknown user should not be valid", uim.isUserValid(newUser));
   }
   
   @Test
   public void differentObjectsWithSameValuesAreBothValid() throws IOException {
-    UserIdManager uim = new UserIdManager();
+    UserIdManager uim = new ListBasedUserIdManager();
     
     UserId user = uim.getNewUser();
     
@@ -53,7 +54,7 @@ public class UserIdTest {
 
     assertTrue("A newly created user should be valid", uim.isUserValid(user));
     
-    UserId clonedUser = new UserId(user.getUserName(), user.getPassword());
+    UserId clonedUser = new UserId(user.getUserName()+ ":"+ user.getPassword());
     
     assertTrue("The clone should be valid if the original is valid", uim.isUserValid(clonedUser));
     
@@ -65,7 +66,7 @@ public class UserIdTest {
   
   @Test
   public void validUserInvalidPassword() throws IOException {
-    UserIdManager uim = new UserIdManager();
+    UserIdManager uim = new ListBasedUserIdManager();
     
     UserId user = uim.getNewUser();
     
@@ -75,7 +76,7 @@ public class UserIdTest {
 
     assertTrue("A newly created user should be valid", uim.isUserValid(user));
     
-    UserId clonedUser = new UserId(user.getUserName(), "Unlikely to be a UUID");
+    UserId clonedUser = new UserId(user.getUserName()+ ":"+ "Unlikely to be a UUID");
     
     assertFalse("The clone should not be valid becuase the password is different", uim.isUserValid(clonedUser));
     
@@ -87,7 +88,7 @@ public class UserIdTest {
   
   @Test
   public void createTwoUsers() throws IOException {
-    UserIdManager uim = new UserIdManager();
+    UserIdManager uim = new ListBasedUserIdManager();
     
     UserId user1 = uim.getNewUser();
     

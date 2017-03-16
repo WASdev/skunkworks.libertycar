@@ -53,15 +53,13 @@
       var steering = 0;
       var webSocketWrapper = {open: false, socket: null};
       
-      var myId = "<%=request.getRemoteAddr()%>";
-      
       require([
         "dojo/dom-geometry",
         "dojo/_base/array",
         "dojo/dom",
         "dojo/_base/lang",
         "dojo/touch",
-        "dojo/mouse", 
+        "dojo/mouse",
         "dojo/on",
         "dojo/has",
         "dojo/ready",
@@ -74,6 +72,7 @@
               url: "../api/endpointconfig",
               handleAs: "json",
               load: function(result) {
+                getUserId(result.userRestUrl);
                 getWebSocket(result.webSocketUrl);
                 setInterval(sendData, 100);
               },
@@ -99,6 +98,27 @@
           document.body.style.width = bodywidth + "px";
         }
 
+        function getUserId(userRestUrl) {
+          var authToken = "fake:user";
+          if (localStorage.endUser) {
+            authToken = localStorage.endUser;
+          }
+          console.log("User is " + authToken);
+          xhr.post({
+            url: userRestUrl,
+            handleAs: "json",
+            headers: { "Content-Type": "application/json" },
+            postData: "{ \"auth\": \"" + authToken + "\"}",
+            load: function(result) {
+              localStorage.endUser = result.userName + ":" + result.password;
+            },
+            error: function(errorMessage) {
+              setErrorStatus();
+              console.log("Error validating userId: " + errorMessage);
+            }
+          });
+        }
+        
         function setErrorStatus() {
           document.getElementById("status").innerHTML = "COMMUNICATION ERROR";
         }
@@ -120,6 +140,7 @@
           };
 
           skt.onmessage = function(event) {
+        	  
             document.getElementById("status").innerHTML = event.data;
           };
 
@@ -174,8 +195,9 @@
           }
 
           document.getElementById("wheel").style.cssText = "display:block;margin:0 auto;-moz-transform: rotate(" + steering/2 + "deg);-webkit-transform: rotate(" + steering/2 + "deg);";
+          
 
-          webSocketWrapper.socket.send(dojo.toJson({throttle:acceleration,turning:steering, id:myId})); 
+          webSocketWrapper.socket.send(dojo.toJson({throttle:acceleration,turning:steering, id:localStorage.endUser})); 
         } 
       }
     </script>
